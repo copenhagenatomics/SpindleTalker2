@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-
 
 
 namespace SpindleTalker2
 {
+    // for more information see also:
+    // https://github.com/bebro/linuxcnc-huanyang-vfd/blob/emc2/hy_modbus.c
     public static class Serial
     {
         #region Initialization

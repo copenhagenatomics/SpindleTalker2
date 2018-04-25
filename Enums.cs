@@ -8,11 +8,14 @@ namespace SpindleTalker2
     [Flags]
     enum CommandType
     {
-        FunctionRead = 0x01,
-        FunctionWrite = 0x02,
-        WriteControlData = 0x03,
-        ReadControlData = 0x04,
-        WriteInverterFrequencyData = 0x05,
+        FunctionRead = 0x01,  // response length unknown
+        FunctionWrite = 0x02,  // response length 8
+        WriteControlData = 0x03,  // response length 6
+        ReadControlData = 0x04,  // response length 8
+        WriteInverterFrequencyData = 0x05,  // response length 7
+        Recerved1 = 0x06, 
+        Reserved2 = 0x07,
+        LoopTest = 0x08  
     }
 
     [Flags]
