@@ -70,8 +70,18 @@ namespace SpindleTalker2
         OutputAmps = 0x02,
         CurrentRPM = 0x03,
         MaxFreq = 0x05, //PD005
+        IntermediateFreq = 0x06, //PD006
+        MinimumFreq = 0x07, //PD007
+        MaxVoltage = 0x08, //PD008
+        IntermediateVoltage = 0x09, //PD009
+        MinVoltage = 0x0A, //PD010
         MinFreq = 0x0B, //PD011
+        RatedMotorVoltage = 0x8D,  //PD141
+        RatedMotorCurrent = 0x8E,  //PD142
+        NumberOfMotorPols = 0x8F,  //PD143
         MaxRPM = 0x90,  //PD144
+        InverterFrequency = 0xB0,  //PD176
+
     }
 
 }

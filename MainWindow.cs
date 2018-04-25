@@ -185,7 +185,7 @@ namespace SpindleTalker2
         private void buttonSpeed_Click(object sender, EventArgs e)
         {
             string senderText = (sender as Button).Text;
-            string targetRPM = Regex.Replace(senderText, "[^.0-9]", "");
+            string targetRPM = Regex.Replace(senderText, "[^0-9]", "");
             gTrackBarSpindleSpeed.Value = Convert.ToInt32(targetRPM);
         }
 

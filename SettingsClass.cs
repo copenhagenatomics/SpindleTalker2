@@ -150,6 +150,96 @@ namespace SpindleTalker2
             set { ; }
         }
 
+        public static int VFD_IntermediateFreq
+        {
+            get { return _VFD_IntermediateFreq; }
+            set
+            {
+                _VFD_IntermediateFreq = value;
+            }
+        }
+        private static int _VFD_IntermediateFreq;
+
+        public static int VFD_MinimumFreq
+        {
+            get { return _VFD_MinimumFreq; }
+            set
+            {
+                _VFD_MinimumFreq = value;
+            }
+        }
+        private static int _VFD_MinimumFreq;
+
+        public static double VFD_MaxVoltage
+        {
+            get { return _VFD_MaxVoltage; }
+            set
+            {
+                _VFD_MaxVoltage = value;
+            }
+        }
+        private static double _VFD_MaxVoltage;
+
+        public static double VFD_IntermediateVoltage
+        {
+            get { return _VFD_IntermediateVoltage; }
+            set
+            {
+                _VFD_IntermediateVoltage = value;
+            }
+        }
+        private static double _VFD_IntermediateVoltage;
+
+        public static double VFD_MinVoltage
+        {
+            get { return _VFD_MinVoltage; }
+            set
+            {
+                _VFD_MinVoltage = value;
+            }
+        }
+        private static double _VFD_MinVoltage;
+
+        public static double VFD_RatedMotorVoltage
+        {
+            get { return _VFD_RatedMotorVoltage; }
+            set
+            {
+                _VFD_RatedMotorVoltage = value;
+            }
+        }
+        private static double _VFD_RatedMotorVoltage;
+
+        public static double VFD_RatedMotorCurrent
+        {
+            get { return _VFD_RatedMotorCurrent; }
+            set
+            {
+                _VFD_RatedMotorCurrent = value;
+            }
+        }
+        private static double _VFD_RatedMotorCurrent;
+
+        public static int VFD_NumberOfMotorPols
+        {
+            get { return _VFD_NumberOfMotorPols; }
+            set
+            {
+                _VFD_NumberOfMotorPols = value;
+            }
+        }
+        private static int _VFD_NumberOfMotorPols;
+
+        public static int VFD_InverterFrequency
+        {
+            get { return _VFD_InverterFrequency; }
+            set
+            {
+                _VFD_InverterFrequency = value;
+            }
+        }
+        private static int _VFD_InverterFrequency;
+
         public static int VFD_ModBusID
         {
             get { return Convert.ToInt32(_settings.GetItemOrDefaultValue("VFD_ModBusID", 1)); }
