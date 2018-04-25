@@ -1,3 +1,11 @@
+I found this wonderful app and forked it and fixed a few errors and plan to continue to do so over the comming weeks. 
+A BIG thanks to Tommy Gilchrist!
+
+I have tested this code with my Huanyang HY02D223B and this asynchronous AC motor:
+https://inverterdrive.com/group/Motors-AC/ac-Motor-550-Watts-2-pole-Foot-Face-Mount-71-TEC/
+
+Original release text by Tommy Gilchrist:
+
 ![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/ScreenShots/gauge.png)
 
 I'm pushing this out slightly undercooked as I'm heading off on holidays for a month :-) As such it's probably got a fair few bugs, I've only really done 'happy path' testing i.e. I haven't gone out of my way to do odd things to see what happens. There's limited error handling and I'd be fairly confident that there are a number of scenarios that will get the polling into a twist but restarting the app should reset things.
@@ -6,7 +14,7 @@ I'm releasing it now to (a) gauge interest and (b) allow some other people to do
 
 This is a Windows application to control the Huanyang Inverter that seems to be a popular choice for mid-range hobbyist CNC users. The model I have is the HY01D523B. This inverter and the accompanying spindle are frequently referred to as "the Chinese spindle" on some forums.
 
-Just extract the contents of the zip file below into the directory of your choice. The only dependency should be .NET 4.0 or above. (edit - just remembered I used a non-standard font for the gauges screen and it's out of proportion when it defaults to the system fonts. If you want to install the font I used it's "Digital 7" true type font. Google "Digital 7 Font" for a download or here for the creator's page Digital-7 )
+Just extract the contents of the zip file below into the directory of your choice. The only dependency should be .NET 4.0 or above. (edit - just remembered I used a non-standard font for the gauges screen and it's out of proportion when it defaults to the system fonts. If you want to install the font I used it's "Digital 7" true type font. Google "Digital 7 Font" for a download or here for the creator's page [Digital-7](http://www.styleseven.com/php/get_product.php?product=Digital-7) )
 
 The program is designed to allow standalone control of the spindle. There is a Mach3 plugin out there which I eventually hope to use myself but I've written this for use with my grbl controller and ShapeOKO2.
 
