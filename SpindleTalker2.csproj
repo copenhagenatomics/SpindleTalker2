@@ -66,6 +66,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RegisterValue.cs" />
     <Compile Include="UserControls\CommandBuilder.cs">
       <SubType>UserControl</SubType>
     </Compile>

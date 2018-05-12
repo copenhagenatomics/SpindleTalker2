@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using System.Threading;
+using System.Diagnostics;
 
 namespace SpindleTalker2.UserControls
 {
@@ -30,16 +33,26 @@ namespace SpindleTalker2.UserControls
             CommandType selectedCommandType = (CommandType)Enum.Parse(typeof(CommandType), cbCommandType.SelectedItem.ToString());
             CommandLength selectedCommandLength = (CommandLength)Enum.Parse(typeof(CommandLength), cbCommandLength.SelectedItem.ToString());
 
-            int packetLength = Convert.ToInt32((byte)selectedCommandLength) + 3;
+            SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
+        }
+
+        private RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, byte _data0, byte _data1, byte _data2)
+        {
+            int packetLength = selectedCommandLength + 3;
             byte[] command = new byte[packetLength];
             command[0] = (byte)Settings.VFD_ModBusID;
-            command[1] = (byte)selectedCommandType;
-            command[2] = (byte)selectedCommandLength;
-            command[3] = (byte)data0.Value;
-            if (packetLength > 4) command[4] = (byte)Convert.ToByte(data1.Text, 16);
-            if (packetLength > 5) command[5] = (byte)Convert.ToByte(data2.Text, 16); 
+            command[1] = selectedCommandType;
+            command[2] = selectedCommandLength;
+            command[3] = _data0;
+            if (packetLength > 4) command[4] = _data1;
+            if (packetLength > 5) command[5] = _data2;
 
-            Serial.SendData(command);
+            var buffer = Serial.SendData(command);
+
+            return new RegisterValue(_data0)
+            {
+                Value = buffer[0].ToString()
+            };
         }
 
         private void textBoxEnter(object sender, EventArgs e)
@@ -78,6 +91,62 @@ namespace SpindleTalker2.UserControls
         {
             Settings.terminalForm.textBoxResponse.Clear();
             Settings.terminalForm.textBoxSent.Clear();
+        }
+
+        private void ButtonDownload_Click(object sender, EventArgs e)
+        {
+            var dialog = new SaveFileDialog();
+            dialog.CheckFileExists = true;
+            dialog.CheckPathExists = true;
+            dialog.Filter = "csv file |(*.csv)";
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                var lines = new List<string>();
+                lines.Add(RegisterValue.Header);
+                for (int i=1; i<200; i++)
+                {
+                    try
+                    {
+                        var result = SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
+                        if(result != null)
+                            lines.Add(result.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print(ex.ToString());
+                    }
+                }
+
+                File.WriteAllLines(dialog.FileName, lines);
+            }
+        }
+
+        private void ButtonUpload_Click(object sender, EventArgs e)
+        {
+            var dialog = new OpenFileDialog();
+            dialog.Multiselect = false;
+            dialog.CheckFileExists = true;
+            dialog.CheckPathExists = true;
+            dialog.Filter = "csv file |(*.csv)";
+            if(dialog.ShowDialog() == DialogResult.OK)
+            {
+                var lines = RegisterValue.LoadCsv(dialog.FileName);
+                if(lines != null)
+                {
+                    foreach(var line in lines)
+                    {
+                        try
+                        {
+                            SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
+                            Thread.Sleep(10);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Print(ex.ToString());
+                        }
+                    }
+                }
+            }
         }
     }
 }

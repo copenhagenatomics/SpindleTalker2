@@ -22,6 +22,8 @@ namespace SpindleTalker2
         private static int responseWaitTimeout = 100; // in milliseconds
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03 };
         private static bool doNotPoll = true; // for debug testing purposes
+        private static byte[] _rawMessage;
+        private static int _rawValue;
 
         static Serial()
         {
@@ -62,56 +64,56 @@ namespace SpindleTalker2
             packet[5] = 0x00;
 
             // Request current RPM to see if the spindle is actually still running
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request max frequency
             packet[1] = (byte)CommandType.FunctionRead;
             packet[3] = (byte)ModbusRegisters.MaxFreq;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request intermediate frequency
             packet[3] = (byte)ModbusRegisters.IntermediateFreq;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request minimum frequency
             packet[3] = (byte)ModbusRegisters.MinimumFreq;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request max voltage
             packet[3] = (byte)ModbusRegisters.MaxVoltage;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request intermediate voltage
             packet[3] = (byte)ModbusRegisters.IntermediateVoltage;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request minimum voltage
             packet[3] = (byte)ModbusRegisters.MinVoltage;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request minimum frequency
             packet[3] = (byte)ModbusRegisters.MinFreq;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request rated motor voltage
             packet[3] = (byte)ModbusRegisters.RatedMotorVoltage;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request rated motor current
             packet[3] = (byte)ModbusRegisters.RatedMotorCurrent;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request number of motor pols
             packet[3] = (byte)ModbusRegisters.NumberOfMotorPols;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request max RPM
             packet[3] = (byte)ModbusRegisters.MaxRPM;
-            SendData(packet);
+            SendDataAsync(packet);
 
             // Request inverter frequency
             packet[3] = (byte)ModbusRegisters.InverterFrequency;
-            SendData(packet);
+            SendDataAsync(packet);
 
         }
 
@@ -122,7 +124,7 @@ namespace SpindleTalker2
 
         public static void Disconnect()
         {
-            SendData(new byte[] { 0xff, 0xff, 0xff, 0xff, 0xff });
+            SendDataAsync(new byte[] { 0xff, 0xff, 0xff, 0xff, 0xff });
         }
 
         public static void StopPolling() { spindleActive.Reset(); }
@@ -131,20 +133,31 @@ namespace SpindleTalker2
 
         public static bool CRCCheck(byte[] byteArrayToCheck)
         {
-            byte[] rawMessage = new byte[byteArrayToCheck.Length - 2];
-            Buffer.BlockCopy(byteArrayToCheck, 0, rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
+            _rawMessage = new byte[byteArrayToCheck.Length - 2];
+            Buffer.BlockCopy(byteArrayToCheck, 0, _rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
 
-            bool validCRC = byteArrayToCheck.SequenceEqual(CRCSign(rawMessage));
+            bool validCRC = byteArrayToCheck.SequenceEqual(CRCSign(_rawMessage));
             return validCRC;
         }
 
-        public static void SendData(byte[] dataToSend)
+        public static void SendDataAsync(byte[] dataToSend)
         {
             lock (commandQueue)
             {
                 commandQueue.Enqueue(crc16byte(dataToSend));
             }
             spindleActive.Set();
+        }
+
+        public static byte[] SendData(byte[] dataToSend)
+        {
+            lock (commandQueue)
+            {
+                commandQueue.Enqueue(crc16byte(dataToSend));
+            }
+            spindleActive.Set();
+            // wait here for mutex then read input queue and return 
+            return _rawMessage;
         }
 
         #endregion
@@ -162,7 +175,7 @@ namespace SpindleTalker2
                 case 1: // Data Sent
                     byte[] sentPacket = (byte[])e.UserState;
                     int sentValue = Convert.ToInt32((sentPacket[sentPacket.Length - 4] << 8) + sentPacket[sentPacket.Length - 3]);
-                    string message = string.Format("{0:H:mm:ss.ff} - Data sent : {1} ({2})", DateTime.Now, ByteArrayToHexString(sentPacket), sentValue);
+                    string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data sent : {ByteArrayToHexString(sentPacket)} ({sentValue})";
                     Console.WriteLine(message);
                     Settings.terminalForm.textBoxSent.Text += message + Environment.NewLine;
                     Settings.terminalForm.textBoxSent.SelectionStart = Settings.terminalForm.textBoxSent.Text.Length;
@@ -173,7 +186,7 @@ namespace SpindleTalker2
                     if (receivedPacket.Length > 0) ProcessReceivedPacket(receivedPacket);
                     break;
                 case 99: // Error received
-                    Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Error : {1}", DateTime.Now, e.UserState));
+                    Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Error : {e.UserState}");
                     Settings.SerialConnected = false;
                     break;
             }
@@ -183,6 +196,8 @@ namespace SpindleTalker2
         {
             if (CRCCheck(receivedPacket))
             {
+                // her skal jeg måske sætte data i fra received page til en kø og sætte en mutex så SendCommand kan returnere 
+
                 if (doNotPoll == false)
                 {
                     // check if the received packet is a response to a status poll
@@ -196,7 +211,7 @@ namespace SpindleTalker2
                     else
                     {
                         int receivedValue = Convert.ToInt32((receivedPacket[receivedPacket.Length - 4] << 8) + receivedPacket[receivedPacket.Length - 3]);
-                        string message = string.Format("{0:H:mm:ss.ff} - Data received : {1} ({2})", DateTime.Now, ByteArrayToHexString(receivedPacket), receivedValue);
+                        string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
                         Console.WriteLine(message);
                         Settings.terminalForm.textBoxResponse.Text += message + Environment.NewLine;
                         Settings.terminalForm.textBoxResponse.SelectionStart = Settings.terminalForm.textBoxResponse.Text.Length;
@@ -207,7 +222,7 @@ namespace SpindleTalker2
                 {
                     if (receivedPacket.Length == 8)
                     {
-                        int value = Convert.ToInt32((receivedPacket[4] << 8) + receivedPacket[5]);
+                        _rawValue = Convert.ToInt32((receivedPacket[4] << 8) + receivedPacket[5]);
 
                         switch (receivedPacket[3])
                         {
@@ -215,69 +230,69 @@ namespace SpindleTalker2
                                 Settings.graphsForm.ProcessPollPacket(receivedPacket);
                                 return;
                             case (byte)ModbusRegisters.MaxFreq:
-                                Settings.VFD_MaxFreq = value / 100;
+                                Settings.VFD_MaxFreq = _rawValue / 100;
                                 PrintReceivedData("Maximum Frequency (Hz)", Settings.VFD_MaxFreq);
                                 return;
                             case (byte)ModbusRegisters.MinFreq:
-                                Settings.VFD_MinFreq = value / 100;
+                                Settings.VFD_MinFreq = _rawValue / 100;
                                 PrintReceivedData("Minimum Frequency (Hz)", Settings.VFD_MinFreq);
                                 return;
                             case (byte)ModbusRegisters.MaxRPM:
-                                Settings.VFD_MaxRPM = value;
+                                Settings.VFD_MaxRPM = _rawValue;
                                 PrintReceivedData("Maximum RPM", Settings.VFD_MaxRPM);
                                 return;
                             case (byte)ModbusRegisters.IntermediateFreq:
-                                Settings.VFD_IntermediateFreq = value / 100;
+                                Settings.VFD_IntermediateFreq = _rawValue / 100;
                                 PrintReceivedData("Intermediate Frequency", Settings.VFD_IntermediateFreq);
                                 return;
                             case (byte)ModbusRegisters.MinimumFreq:
-                                Settings.VFD_MinimumFreq = value / 100;
+                                Settings.VFD_MinimumFreq = _rawValue / 100;
                                 PrintReceivedData("Minimum Frequency", Settings.VFD_MinimumFreq);
                                 return;
                             case (byte)ModbusRegisters.MaxVoltage:
-                                Settings.VFD_MaxVoltage = value / 10.0;
+                                Settings.VFD_MaxVoltage = _rawValue / 10.0;
                                 PrintReceivedData("Maximum Output Voltage", Settings.VFD_MaxVoltage);
                                 return;
                             case (byte)ModbusRegisters.IntermediateVoltage:
-                                Settings.VFD_IntermediateVoltage = value / 10.0;
+                                Settings.VFD_IntermediateVoltage = _rawValue / 10.0;
                                 PrintReceivedData("Intermediate Voltage", Settings.VFD_IntermediateVoltage);
                                 return;
                             case (byte)ModbusRegisters.MinVoltage:
-                                Settings.VFD_MinVoltage = value / 10;
+                                Settings.VFD_MinVoltage = _rawValue / 10;
                                 PrintReceivedData("Minimum Voltage", Settings.VFD_MinVoltage);
                                 return;
                             case (byte)ModbusRegisters.RatedMotorVoltage:
-                                Settings.VFD_RatedMotorVoltage = value / 10.0;
+                                Settings.VFD_RatedMotorVoltage = _rawValue / 10.0;
                                 PrintReceivedData("Rated Motor Voltage", Settings.VFD_RatedMotorVoltage);
                                 return;
                             case (byte)ModbusRegisters.RatedMotorCurrent:
-                                Settings.VFD_RatedMotorCurrent = value;
+                                Settings.VFD_RatedMotorCurrent = _rawValue;
                                 PrintReceivedData("Rated Motor Current", Settings.VFD_RatedMotorCurrent);
                                 return;
                             case (byte)ModbusRegisters.NumberOfMotorPols:
-                                Settings.VFD_NumberOfMotorPols = value;
+                                Settings.VFD_NumberOfMotorPols = _rawValue;
                                 PrintReceivedData("Number Of Motor Pols", Settings.VFD_NumberOfMotorPols);
                                 return;
                             case (byte)ModbusRegisters.InverterFrequency:
-                                Settings.VFD_InverterFrequency = value==1?60:50;
+                                Settings.VFD_InverterFrequency = _rawValue==1?60:50;
                                 PrintReceivedData("Inverter Frequency (Hz)", Settings.VFD_InverterFrequency);
                                 return;
                         }
 
                         // if unknown command then print:
-                        Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Initial poll packet = {1}", DateTime.Now, ByteArrayToHexString(receivedPacket)));
+                        Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {ByteArrayToHexString(receivedPacket)} = {_rawValue}");
                     }
                 }
             }
             else
             {
-                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - CRC Failed : {1}", DateTime.Now, ByteArrayToHexString(receivedPacket)));
+                Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {ByteArrayToHexString(receivedPacket)}");
             }
         }
 
         private static void PrintReceivedData(string text, double value)
         {
-            Console.WriteLine(string.Format("{0:H:mm:ss.ff} - {1} = {2}", DateTime.Now, text, value));
+            Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
         }
 
         static void bgSerial_DoWork(object sender, DoWorkEventArgs e)

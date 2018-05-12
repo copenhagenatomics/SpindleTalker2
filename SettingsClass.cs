@@ -247,7 +247,7 @@ namespace SpindleTalker2
 
         public static string QuickSets
         {
-            get { return _settings.GetItemOrDefaultValue("QuickSets", "6000;9000;15000;20000;24000").ToString(); }
+            get { return _settings.GetItemOrDefaultValue("QuickSets", "50;100;500;1500;3000").ToString(); }
             set { _settings.Settings["QuickSets"] = value; }
         }
 

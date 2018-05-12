@@ -42,16 +42,16 @@ namespace SpindleTalker2
             //    spindles. The CRC is added as part of the SendData() method. 
             //
 
-            Serial.SendData(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
+            Serial.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
             SetFrequency(Settings.VFD_MinFreq); 
 
             // For future testing, the spindle reverse function doesn't appear to be working
-            Serial.SendData(direction == SpindleDirection.Forward ? RunForward : RunBack);
+            Serial.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
         }
 
         public static void Stop()
         {
-            Serial.SendData(stopSpindle);
+            Serial.SendDataAsync(stopSpindle);
             Settings.graphsForm.SpindleShuttingDown = true;
             pollSpinDown.Start(); // start a timer to shutdown polling in 10 secs to allow time for the spindle to stop
         }
@@ -93,7 +93,7 @@ namespace SpindleTalker2
             controlPacket[3] = (byte)(targetFrequency >> 8); // Bitshift right to get bits nine to 16 of the int32 value
             controlPacket[4] = (byte)targetFrequency; // returns the eight Least Significant Bits (LSB) of the int32 value
 
-            Serial.SendData(controlPacket);
+            Serial.SendDataAsync(controlPacket);
         }
 
 
