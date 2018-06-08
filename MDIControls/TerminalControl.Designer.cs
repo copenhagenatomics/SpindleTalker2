@@ -53,16 +53,16 @@
             this.tableLayoutPanelSerialBase.RowCount = 2;
             this.tableLayoutPanelSerialBase.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanelSerialBase.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
-            this.tableLayoutPanelSerialBase.Size = new System.Drawing.Size(730, 214);
+            this.tableLayoutPanelSerialBase.Size = new System.Drawing.Size(863, 214);
             this.tableLayoutPanelSerialBase.TabIndex = 0;
             // 
             // groupBoxResponse
             // 
             this.groupBoxResponse.Controls.Add(this.textBoxResponse);
             this.groupBoxResponse.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBoxResponse.Location = new System.Drawing.Point(368, 3);
+            this.groupBoxResponse.Location = new System.Drawing.Point(434, 3);
             this.groupBoxResponse.Name = "groupBoxResponse";
-            this.groupBoxResponse.Size = new System.Drawing.Size(359, 148);
+            this.groupBoxResponse.Size = new System.Drawing.Size(426, 148);
             this.groupBoxResponse.TabIndex = 10;
             this.groupBoxResponse.TabStop = false;
             this.groupBoxResponse.Text = "Response";
@@ -75,7 +75,7 @@
             this.textBoxResponse.Name = "textBoxResponse";
             this.textBoxResponse.ReadOnly = true;
             this.textBoxResponse.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxResponse.Size = new System.Drawing.Size(353, 129);
+            this.textBoxResponse.Size = new System.Drawing.Size(420, 129);
             this.textBoxResponse.TabIndex = 1;
             // 
             // groupBox1
@@ -85,7 +85,7 @@
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.groupBox1.Size = new System.Drawing.Size(359, 148);
+            this.groupBox1.Size = new System.Drawing.Size(425, 148);
             this.groupBox1.TabIndex = 9;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Sent Command";
@@ -98,7 +98,7 @@
             this.textBoxSent.Name = "textBoxSent";
             this.textBoxSent.ReadOnly = true;
             this.textBoxSent.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxSent.Size = new System.Drawing.Size(353, 129);
+            this.textBoxSent.Size = new System.Drawing.Size(419, 129);
             this.textBoxSent.TabIndex = 0;
             // 
             // commandBuilder1
@@ -107,7 +107,7 @@
             this.commandBuilder1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.commandBuilder1.Location = new System.Drawing.Point(3, 157);
             this.commandBuilder1.Name = "commandBuilder1";
-            this.commandBuilder1.Size = new System.Drawing.Size(724, 54);
+            this.commandBuilder1.Size = new System.Drawing.Size(857, 54);
             this.commandBuilder1.TabIndex = 11;
             // 
             // TerminalControl
@@ -116,7 +116,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tableLayoutPanelSerialBase);
             this.Name = "TerminalControl";
-            this.Size = new System.Drawing.Size(730, 214);
+            this.Size = new System.Drawing.Size(863, 214);
             this.Tag = "Terminal";
             this.tableLayoutPanelSerialBase.ResumeLayout(false);
             this.groupBoxResponse.ResumeLayout(false);

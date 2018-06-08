@@ -42,20 +42,24 @@
             this.lblDataBits = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.buttonResetVFD = new System.Windows.Forms.Button();
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.labelMaxRPM = new System.Windows.Forms.Label();
             this.labelMinMaxFreq = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.comboBoxCSV = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.ButtonSaveQuickSet = new System.Windows.Forms.Button();
             this.textBoxQuickset = new System.Windows.Forms.TextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.buttonResetVFD = new System.Windows.Forms.Button();
             this.gbPortSettings.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
             this.flowLayoutPanel1.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -231,12 +235,22 @@
             this.groupBox1.Controls.Add(this.labelMaxRPM);
             this.groupBox1.Controls.Add(this.labelMinMaxFreq);
             this.groupBox1.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox1.Location = new System.Drawing.Point(312, 5);
+            this.groupBox1.Location = new System.Drawing.Point(312, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(303, 108);
+            this.groupBox1.Size = new System.Drawing.Size(303, 110);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "VFD Settings";
+            // 
+            // buttonResetVFD
+            // 
+            this.buttonResetVFD.Location = new System.Drawing.Point(167, 17);
+            this.buttonResetVFD.Name = "buttonResetVFD";
+            this.buttonResetVFD.Size = new System.Drawing.Size(128, 23);
+            this.buttonResetVFD.TabIndex = 18;
+            this.buttonResetVFD.Text = "Factory Reset VFD";
+            this.buttonResetVFD.UseVisualStyleBackColor = true;
+            this.buttonResetVFD.Click += new System.EventHandler(this.buttonResetVFD_Click);
             // 
             // numericUpDown4
             // 
@@ -291,6 +305,7 @@
             // 
             this.flowLayoutPanel1.Controls.Add(this.gbPortSettings);
             this.flowLayoutPanel1.Controls.Add(this.groupBox1);
+            this.flowLayoutPanel1.Controls.Add(this.groupBox3);
             this.flowLayoutPanel1.Controls.Add(this.groupBox2);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -299,6 +314,38 @@
             this.flowLayoutPanel1.Size = new System.Drawing.Size(730, 214);
             this.flowLayoutPanel1.TabIndex = 2;
             this.flowLayoutPanel1.Resize += new System.EventHandler(this.SettingsForm_ResizeEnd);
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.comboBoxCSV);
+            this.groupBox3.Controls.Add(this.label2);
+            this.groupBox3.Location = new System.Drawing.Point(621, 3);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(101, 110);
+            this.groupBox3.TabIndex = 9;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "CSV file";
+            // 
+            // comboBoxCSV
+            // 
+            this.comboBoxCSV.FormattingEnabled = true;
+            this.comboBoxCSV.Items.AddRange(new object[] {
+            ",",
+            ";"});
+            this.comboBoxCSV.Location = new System.Drawing.Point(6, 47);
+            this.comboBoxCSV.Name = "comboBoxCSV";
+            this.comboBoxCSV.Size = new System.Drawing.Size(59, 23);
+            this.comboBoxCSV.TabIndex = 2;
+            this.comboBoxCSV.SelectedIndexChanged += new System.EventHandler(this.comboBoxCSV_SelectedIndexChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 29);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(60, 15);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "Seperator";
             // 
             // groupBox2
             // 
@@ -331,16 +378,6 @@
             this.textBoxQuickset.Size = new System.Drawing.Size(537, 27);
             this.textBoxQuickset.TabIndex = 0;
             // 
-            // buttonResetVFD
-            // 
-            this.buttonResetVFD.Location = new System.Drawing.Point(167, 17);
-            this.buttonResetVFD.Name = "buttonResetVFD";
-            this.buttonResetVFD.Size = new System.Drawing.Size(128, 23);
-            this.buttonResetVFD.TabIndex = 18;
-            this.buttonResetVFD.Text = "Factory Reset VFD";
-            this.buttonResetVFD.UseVisualStyleBackColor = true;
-            this.buttonResetVFD.Click += new System.EventHandler(this.buttonResetVFD_Click);
-            // 
             // SettingsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -356,6 +393,8 @@
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).EndInit();
             this.flowLayoutPanel1.ResumeLayout(false);
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
@@ -387,5 +426,8 @@
         public System.Windows.Forms.Label labelMaxRPM;
         private System.Windows.Forms.Button ButtonSaveQuickSet;
         private System.Windows.Forms.Button buttonResetVFD;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ComboBox comboBoxCSV;
     }
 }

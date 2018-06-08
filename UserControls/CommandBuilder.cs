@@ -95,18 +95,18 @@ namespace SpindleTalker2.UserControls
         {
             var dialog = new SaveFileDialog();
             dialog.CheckPathExists = true;
-            dialog.Filter = "csv file |(*.csv)";
+            dialog.Filter = "csv file |*.csv";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 var lines = new List<string>();
-                lines.Add(RegisterValue.Header);
+                lines.Add(RegisterValue.Header(Settings.settingsForm.csvSeperator));
                 for (int i=1; i<200; i++)
                 {
                     try
                     {
                         var result = SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
                         if(result != null)
-                            lines.Add(result.ToString());
+                            lines.Add(result.ToString(Settings.settingsForm.csvSeperator));
                     }
                     catch (Exception ex)
                     {
@@ -125,10 +125,10 @@ namespace SpindleTalker2.UserControls
             dialog.Multiselect = false;
             dialog.CheckFileExists = true;
             dialog.CheckPathExists = true;
-            dialog.Filter = "csv file |(*.csv)";
+            dialog.Filter = "csv file |*.csv";
             if(dialog.ShowDialog() == DialogResult.OK)
             {
-                var lines = RegisterValue.LoadCsv(dialog.FileName);
+                var lines = RegisterValue.LoadCsv(dialog.FileName, Settings.settingsForm.csvSeperator);
                 if(lines != null)
                 {
                     foreach(var line in lines)

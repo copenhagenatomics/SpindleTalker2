@@ -9,10 +9,11 @@ namespace SpindleTalker2
 {
     public class RegisterValue
     {
+        private const string QT = "\"";
         public int ID { get; private set; }
         public string Value { get; set; }
 
-        public static string Header { get { return "ID,Type,Description,Value,Unit,DefaultValue"; } }
+        public static string Header(char seperator) { return $"{QT}ID{QT}{seperator}{QT}Type{QT}{seperator}{QT}Description{QT}{seperator}{QT}Value{QT}{seperator}{QT}Unit{QT}{seperator}{QT}DefaultValue{QT}";  }
         public static int ColumnCount { get { return 6; } }
         public RegisterValue(string id)
         {
@@ -26,7 +27,12 @@ namespace SpindleTalker2
 
         public override string ToString()
         {
-            return $"{ID},{Type},{Description},{Value},{Unit},{DefaultValue}";
+            return ToString(',');
+        }
+
+        public string ToString(char seperator)
+        {
+            return $"{ID}{seperator}{Type}{seperator}{QT}{Description}{QT}{seperator}{Value}{seperator}{Unit}{seperator}{DefaultValue}";
         }
 
 
@@ -846,10 +852,10 @@ namespace SpindleTalker2
 
         #endregion
 
-        public static List<RegisterValue> LoadCsv(string filename)
+        public static List<RegisterValue> LoadCsv(string filename, char seperator = ',')
         {
-            var lines = File.ReadAllLines(filename).ToList();
-            if (lines[0] == RegisterValue.Header)
+            var lines = File.ReadAllLines(filename).Select(x => x.Replace(seperator, ',')).ToList();
+            if (lines[0] == RegisterValue.Header(seperator))
             {
                 var result = new List<RegisterValue>();
                 foreach (var line in lines.Skip(1))

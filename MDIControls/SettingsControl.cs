@@ -17,9 +17,13 @@ namespace SpindleTalker2
 {
     public partial class SettingsControl : UserControl
     {
+        public char csvSeperator { get; private set; }
+
         public SettingsControl()
         {
             InitializeComponent();
+            csvSeperator = ';';
+            comboBoxCSV.SelectedText = csvSeperator.ToString();
         }
 
         private void SettingsForm_Load(object sender, EventArgs e)
@@ -162,6 +166,11 @@ namespace SpindleTalker2
         {
             byte[] factoryReset = new byte[] { (byte)Settings.VFD_ModBusID, (byte)CommandType.FunctionWrite, (byte)CommandLength.TwoBytes, 0x13, 0x08 };
             Serial.SendDataAsync(factoryReset);
+        }
+
+        private void comboBoxCSV_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            csvSeperator = comboBoxCSV.SelectedItem.ToString()[0];
         }
     }
 }
