@@ -102,8 +102,15 @@ namespace SpindleTalker2
             get { return _VFD_MinFreq; }
             set
             {
-                _VFD_MinFreq = value;
-                Settings.settingsForm.labelMinMaxFreq.Text = string.Format("Min/Max Frequency = {0}Hz/{1}Hz", _VFD_MinFreq, _VFD_MaxFreq);
+                if (Settings.graphsForm.InvokeRequired)
+                {
+                    Settings.graphsForm.Invoke(new Action(() => { VFD_MinFreq = value; }));
+                }
+                else
+                {
+                    _VFD_MinFreq = value;
+                    Settings.settingsForm.labelMinMaxFreq.Text = string.Format("Min/Max Frequency = {0}Hz/{1}Hz", _VFD_MinFreq, _VFD_MaxFreq);
+                }
             }
         }
         private static int _VFD_MinFreq;
@@ -113,10 +120,17 @@ namespace SpindleTalker2
             get { return _VFD_MaxFreq; }
             set
             {
-                _VFD_MaxFreq = value;
-                Settings.graphsForm.MeterOutF.ScaleMaxValue = _VFD_MaxFreq;
-                Settings.graphsForm.MeterSetF.ScaleMaxValue = _VFD_MaxFreq;
-                Settings.settingsForm.labelMinMaxFreq.Text = string.Format("Min/Max Frequency = {0}Hz / {1}Hz",_VFD_MinFreq, _VFD_MaxFreq);
+                if (Settings.graphsForm.InvokeRequired)
+                {
+                    Settings.graphsForm.Invoke(new Action(() => { VFD_MaxFreq = value;  }));
+                }
+                else
+                {
+                    _VFD_MaxFreq = value;
+                    Settings.graphsForm.MeterOutF.ScaleMaxValue = _VFD_MaxFreq;
+                    Settings.graphsForm.MeterSetF.ScaleMaxValue = _VFD_MaxFreq;
+                    Settings.settingsForm.labelMinMaxFreq.Text = string.Format("Min/Max Frequency = {0}Hz / {1}Hz", _VFD_MinFreq, _VFD_MaxFreq);
+                }
             }
         }
         private static int _VFD_MaxFreq;
@@ -126,10 +140,17 @@ namespace SpindleTalker2
             get { return _VFD_MaxRPM; }
             set
             {
-                _VFD_MaxRPM = value;
-                Settings.graphsForm.MeterRPM.ScaleMaxValue = _VFD_MaxRPM;
-                Settings.graphsForm.MeterRPM.ScaleMaxValue = _VFD_MaxRPM;
-                Settings.settingsForm.labelMaxRPM.Text = string.Format("Maximum speed = {0:#,##0}RPM", _VFD_MaxRPM);
+                if (Settings.graphsForm.InvokeRequired)
+                {
+                    Settings.graphsForm.Invoke(new Action(() => { VFD_MaxRPM = value; }));
+                }
+                else
+                {
+                    _VFD_MaxRPM = value;
+                    Settings.graphsForm.MeterRPM.ScaleMaxValue = _VFD_MaxRPM;
+                    Settings.graphsForm.MeterRPM.ScaleMaxValue = _VFD_MaxRPM;
+                    Settings.settingsForm.labelMaxRPM.Text = string.Format("Maximum speed = {0:#,##0}RPM", _VFD_MaxRPM);
+                }
             }
         }
         private static int _VFD_MaxRPM;
@@ -263,6 +284,25 @@ namespace SpindleTalker2
             VFD_MaxRPM = -1;
         }
 
+        public static void WriteTerminalForm(string message, bool send)
+        {
+            if (terminalForm.textBoxResponse.InvokeRequired)
+            {
+                terminalForm.textBoxResponse.Invoke(new Action(() => WriteTerminalForm(message, send)));
+            }
+            else if (send)
+            {
+                terminalForm.textBoxSent.Text += message + Environment.NewLine;
+                terminalForm.textBoxSent.SelectionStart = terminalForm.textBoxSent.Text.Length;
+                terminalForm.textBoxSent.ScrollToCaret();
+            }
+            else
+            {
+                terminalForm.textBoxResponse.Text += message + Environment.NewLine;
+                terminalForm.textBoxResponse.SelectionStart = terminalForm.textBoxResponse.Text.Length;
+                terminalForm.textBoxResponse.ScrollToCaret();
+            }
+        }
     }
 
     #region Settings4Net

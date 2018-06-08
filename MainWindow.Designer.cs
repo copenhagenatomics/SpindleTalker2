@@ -178,7 +178,7 @@
             this.gTrackBarSpindleSpeed.Label = "Speed";
             this.gTrackBarSpindleSpeed.Location = new System.Drawing.Point(10, 16);
             this.gTrackBarSpindleSpeed.Margin = new System.Windows.Forms.Padding(3, 3, 2, 3);
-            this.gTrackBarSpindleSpeed.MaxValue = 24000;
+            this.gTrackBarSpindleSpeed.MaxValue = 3600;
             this.gTrackBarSpindleSpeed.Name = "gTrackBarSpindleSpeed";
             this.gTrackBarSpindleSpeed.Size = new System.Drawing.Size(157, 60);
             this.gTrackBarSpindleSpeed.SliderCapEnd = System.Drawing.Drawing2D.LineCap.NoAnchor;

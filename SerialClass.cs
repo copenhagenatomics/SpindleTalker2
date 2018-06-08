@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
-
+using System.Windows.Forms;
 
 namespace SpindleTalker2
 {
@@ -15,25 +14,20 @@ namespace SpindleTalker2
     {
         #region Initialization
 
-        private static BackgroundWorker bgSerial;
-        private static Queue<byte[]> commandQueue = new Queue<byte[]>();
-        private static ManualResetEvent spindleActive = new ManualResetEvent(true);
-        private static ManualResetEvent dataReadyToRead = new ManualResetEvent(true);
+        private static Queue<byte[]> _commandQueue = new Queue<byte[]>();
+        private static Queue<int> _receivedQueue = new Queue<int>();
+        private static ManualResetEvent _spindleActive = new ManualResetEvent(true);
+        private static ManualResetEvent _dataReadyToRead = new ManualResetEvent(true);
         private static int responseWaitTimeout = 100; // in milliseconds
+        private static int _expectedResponseLength = 0;
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03 };
-        private static bool doNotPoll = true; // for debug testing purposes
-        private static byte[] _rawMessage;
-        private static int _rawValue;
+        private static bool _doNotPoll = true; // for debug testing purposes
 
         static Serial()
         {
             populateCRCTable();
 
-            bgSerial = new BackgroundWorker();
-            bgSerial.WorkerSupportsCancellation = true;
-            bgSerial.WorkerReportsProgress = true;
-            bgSerial.DoWork += bgSerial_DoWork;
-            bgSerial.ProgressChanged += bgSerial_ProgressChanged;
+            new Thread(() => DoWork()).Start();
         }
 
 
@@ -43,17 +37,13 @@ namespace SpindleTalker2
 
         public static void Connect()
         {
-            if (!bgSerial.IsBusy)
-            {
-                spindleActive.Reset();
-                bgSerial.RunWorkerAsync();
-            }
+            _spindleActive.Reset();   
             InitialPoll();
         }
 
         public static void InitialPoll()
         {
-            doNotPoll = true;
+            _doNotPoll = true;
 
             byte[] packet = new byte[6];
             packet[0] = (byte)Settings.VFD_ModBusID;
@@ -119,7 +109,7 @@ namespace SpindleTalker2
 
         public static void InitialPollFinished()
         {
-            doNotPoll = false;
+            _doNotPoll = false;
         }
 
         public static void Disconnect()
@@ -127,78 +117,59 @@ namespace SpindleTalker2
             SendDataAsync(new byte[] { 0xff, 0xff, 0xff, 0xff, 0xff });
         }
 
-        public static void StopPolling() { spindleActive.Reset(); }
+        public static void StopPolling() { _spindleActive.Reset(); }
 
         public static byte[] CRCSign(byte[] byteArrayToSign) { return crc16byte(byteArrayToSign); }
 
         public static bool CRCCheck(byte[] byteArrayToCheck)
         {
-            _rawMessage = new byte[byteArrayToCheck.Length - 2];
-            Buffer.BlockCopy(byteArrayToCheck, 0, _rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
+            var rawMessage = new byte[byteArrayToCheck.Length - 2];
+            Buffer.BlockCopy(byteArrayToCheck, 0, rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
 
-            bool validCRC = byteArrayToCheck.SequenceEqual(CRCSign(_rawMessage));
+            bool validCRC = byteArrayToCheck.SequenceEqual(CRCSign(rawMessage));
             return validCRC;
         }
 
         public static void SendDataAsync(byte[] dataToSend)
         {
-            lock (commandQueue)
+            lock (_commandQueue)
             {
-                commandQueue.Enqueue(crc16byte(dataToSend));
+                _commandQueue.Enqueue(crc16byte(dataToSend));
             }
-            spindleActive.Set();
+            _spindleActive.Set();
         }
 
-        public static byte[] SendData(byte[] dataToSend)
+        public static int SendData(byte[] dataToSend)
         {
-            lock (commandQueue)
+            lock (_commandQueue)
             {
-                commandQueue.Enqueue(crc16byte(dataToSend));
+                _commandQueue.Enqueue(crc16byte(dataToSend));
             }
-            spindleActive.Set();
-            // wait here for mutex then read input queue and return 
-            return _rawMessage;
+
+            _spindleActive.Set();
+            for (int i = 0; i < 10; i++)
+            {
+                Application.DoEvents();
+                if (_receivedQueue.Any())
+                    return _receivedQueue.Dequeue();
+
+                Thread.Sleep(50);
+            }
+
+            return 0;
         }
 
         #endregion
 
         #region Background Worker
 
-        static void bgSerial_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            switch (e.ProgressPercentage)
-            {
-                case 0: // COM Port report state
-                    Settings.SerialConnected = (bool)e.UserState;
-
-                    break;
-                case 1: // Data Sent
-                    byte[] sentPacket = (byte[])e.UserState;
-                    int sentValue = Convert.ToInt32((sentPacket[sentPacket.Length - 4] << 8) + sentPacket[sentPacket.Length - 3]);
-                    string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data sent : {ByteArrayToHexString(sentPacket)} ({sentValue})";
-                    Console.WriteLine(message);
-                    Settings.terminalForm.textBoxSent.Text += message + Environment.NewLine;
-                    Settings.terminalForm.textBoxSent.SelectionStart = Settings.terminalForm.textBoxSent.Text.Length;
-                    Settings.terminalForm.textBoxSent.ScrollToCaret();
-                    break;
-                case 2: // Response received
-                    byte[] receivedPacket = (byte[])e.UserState;
-                    if (receivedPacket.Length > 0) ProcessReceivedPacket(receivedPacket);
-                    break;
-                case 99: // Error received
-                    Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Error : {e.UserState}");
-                    Settings.SerialConnected = false;
-                    break;
-            }
-        }
-
         private static void ProcessReceivedPacket(byte[] receivedPacket)
         {
-            if (CRCCheck(receivedPacket))
-            {
-                // her skal jeg måske sætte data i fra received page til en kø og sætte en mutex så SendCommand kan returnere 
+            string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - before CRC check";
 
-                if (doNotPoll == false)
+            if (CRCCheck(receivedPacket))
+            { 
+                if (_doNotPoll == false)
                 {
                     // check if the received packet is a response to a status poll
                     if (receivedPacket[0] == (byte)Settings.VFD_ModBusID &&
@@ -211,18 +182,17 @@ namespace SpindleTalker2
                     else
                     {
                         int receivedValue = Convert.ToInt32((receivedPacket[receivedPacket.Length - 4] << 8) + receivedPacket[receivedPacket.Length - 3]);
-                        string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
+                        _receivedQueue.Enqueue(receivedValue);
+                        message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
                         Console.WriteLine(message);
-                        Settings.terminalForm.textBoxResponse.Text += message + Environment.NewLine;
-                        Settings.terminalForm.textBoxResponse.SelectionStart = Settings.terminalForm.textBoxResponse.Text.Length;
-                        Settings.terminalForm.textBoxResponse.ScrollToCaret();
+                        Settings.WriteTerminalForm(message, false);
                     }
                 }
                 else
                 {
                     if (receivedPacket.Length == 8)
                     {
-                        _rawValue = Convert.ToInt32((receivedPacket[4] << 8) + receivedPacket[5]);
+                        int rawValue = Convert.ToInt32((receivedPacket[4] << 8) + receivedPacket[5]);
 
                         switch (receivedPacket[3])
                         {
@@ -230,57 +200,57 @@ namespace SpindleTalker2
                                 Settings.graphsForm.ProcessPollPacket(receivedPacket);
                                 return;
                             case (byte)ModbusRegisters.MaxFreq:
-                                Settings.VFD_MaxFreq = _rawValue / 100;
+                                Settings.VFD_MaxFreq = rawValue / 100;
                                 PrintReceivedData("Maximum Frequency (Hz)", Settings.VFD_MaxFreq);
                                 return;
                             case (byte)ModbusRegisters.MinFreq:
-                                Settings.VFD_MinFreq = _rawValue / 100;
+                                Settings.VFD_MinFreq = rawValue / 100;
                                 PrintReceivedData("Minimum Frequency (Hz)", Settings.VFD_MinFreq);
                                 return;
                             case (byte)ModbusRegisters.MaxRPM:
-                                Settings.VFD_MaxRPM = _rawValue;
+                                Settings.VFD_MaxRPM = rawValue;
                                 PrintReceivedData("Maximum RPM", Settings.VFD_MaxRPM);
                                 return;
                             case (byte)ModbusRegisters.IntermediateFreq:
-                                Settings.VFD_IntermediateFreq = _rawValue / 100;
+                                Settings.VFD_IntermediateFreq = rawValue / 100;
                                 PrintReceivedData("Intermediate Frequency", Settings.VFD_IntermediateFreq);
                                 return;
                             case (byte)ModbusRegisters.MinimumFreq:
-                                Settings.VFD_MinimumFreq = _rawValue / 100;
+                                Settings.VFD_MinimumFreq = rawValue / 100;
                                 PrintReceivedData("Minimum Frequency", Settings.VFD_MinimumFreq);
                                 return;
                             case (byte)ModbusRegisters.MaxVoltage:
-                                Settings.VFD_MaxVoltage = _rawValue / 10.0;
+                                Settings.VFD_MaxVoltage = rawValue / 10.0;
                                 PrintReceivedData("Maximum Output Voltage", Settings.VFD_MaxVoltage);
                                 return;
                             case (byte)ModbusRegisters.IntermediateVoltage:
-                                Settings.VFD_IntermediateVoltage = _rawValue / 10.0;
+                                Settings.VFD_IntermediateVoltage = rawValue / 10.0;
                                 PrintReceivedData("Intermediate Voltage", Settings.VFD_IntermediateVoltage);
                                 return;
                             case (byte)ModbusRegisters.MinVoltage:
-                                Settings.VFD_MinVoltage = _rawValue / 10;
+                                Settings.VFD_MinVoltage = rawValue / 10;
                                 PrintReceivedData("Minimum Voltage", Settings.VFD_MinVoltage);
                                 return;
                             case (byte)ModbusRegisters.RatedMotorVoltage:
-                                Settings.VFD_RatedMotorVoltage = _rawValue / 10.0;
+                                Settings.VFD_RatedMotorVoltage = rawValue / 10.0;
                                 PrintReceivedData("Rated Motor Voltage", Settings.VFD_RatedMotorVoltage);
                                 return;
                             case (byte)ModbusRegisters.RatedMotorCurrent:
-                                Settings.VFD_RatedMotorCurrent = _rawValue;
+                                Settings.VFD_RatedMotorCurrent = rawValue;
                                 PrintReceivedData("Rated Motor Current", Settings.VFD_RatedMotorCurrent);
                                 return;
                             case (byte)ModbusRegisters.NumberOfMotorPols:
-                                Settings.VFD_NumberOfMotorPols = _rawValue;
+                                Settings.VFD_NumberOfMotorPols = rawValue;
                                 PrintReceivedData("Number Of Motor Pols", Settings.VFD_NumberOfMotorPols);
                                 return;
                             case (byte)ModbusRegisters.InverterFrequency:
-                                Settings.VFD_InverterFrequency = _rawValue==1?60:50;
+                                Settings.VFD_InverterFrequency = rawValue == 1?60:50;
                                 PrintReceivedData("Inverter Frequency (Hz)", Settings.VFD_InverterFrequency);
                                 return;
                         }
 
                         // if unknown command then print:
-                        Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {ByteArrayToHexString(receivedPacket)} = {_rawValue}");
+                        Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {ByteArrayToHexString(receivedPacket)} = {rawValue}");
                     }
                 }
             }
@@ -295,7 +265,15 @@ namespace SpindleTalker2
             Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
         }
 
-        static void bgSerial_DoWork(object sender, DoWorkEventArgs e)
+        private static void PrintSendData(byte[] buffer)
+        {
+            int sentValue = Convert.ToInt32((buffer[buffer.Length - 4] << 8) + buffer[buffer.Length - 3]);
+            string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data sent : {ByteArrayToHexString(buffer)} ({sentValue})";
+            Console.WriteLine(message);
+            Settings.WriteTerminalForm(message, true);
+        }
+
+        static void DoWork()
         {
             SerialPort comPort = new SerialPort();
             comPort.BaudRate = Settings.BaudRate;
@@ -310,15 +288,15 @@ namespace SpindleTalker2
             }
             catch (Exception ex)
             {
-                bgSerial.ReportProgress(99, ex.Message);
-                bgSerial.CancelAsync();
+                Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.fff")} - Error : {ex.Message}");
+                Settings.SerialConnected = false;
                 return;
             }
 
             if (comPort.IsOpen)
             {
                 comPort.DataReceived += comPort_DataReceived;
-                bgSerial.ReportProgress(0, true); // Report that the COM port has opened sucessfully
+                Settings.SerialConnected = true; // Report that the COM port has opened sucessfully
             }
 
             byte[] statusRequestPacket = new byte[6];
@@ -331,7 +309,7 @@ namespace SpindleTalker2
 
 
 
-            while (spindleActive.WaitOne())
+            while (_spindleActive.WaitOne())
             {
                 // ModBus packet format
                 //      [xx]   |     [xx]     |      [xx]      | [xx] [xx] [..] | [xx][xx]
@@ -340,19 +318,19 @@ namespace SpindleTalker2
 
                 byte[] dataToSend = null;
                 byte[] dataReceived = null;
-                int expectedResponseLength = 0;
                 bool isCommandPacket = false;
 
-                lock (commandQueue)
+                lock (_commandQueue)
                 {
-                    if (commandQueue.Count > 0)
+                    if (_commandQueue.Count > 0)
                     {
-                        dataToSend = commandQueue.Dequeue();
+                        dataToSend = _commandQueue.Dequeue();
                         isCommandPacket = true;
+                        Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.fff")} - Send data!");
                     }
                     else
                     {
-                        if (!doNotPoll)
+                        if (!_doNotPoll)
                         {
                             // If there is no command in the queue, use the time for polling
                             if (statusRequestPacket[3] < 0x03) statusRequestPacket[3] += 1;
@@ -371,8 +349,7 @@ namespace SpindleTalker2
                         {
                             case 0xff:
                                 comPort.Close();
-                                bgSerial.ReportProgress(0, false);
-                                bgSerial.CancelAsync();
+                                Settings.SerialConnected = false;
                                 return;
                             case 0x01:
                                 statusRequestPacket[3] = 0x01;
@@ -381,55 +358,55 @@ namespace SpindleTalker2
                         }
                     }
 
-                    comPort.Write(dataToSend, 0, dataToSend.Length);
-                    if (isCommandPacket) bgSerial.ReportProgress(1, dataToSend);
-
-                    if (dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
+                    switch (dataToSend[1])
                     {
-                        switch (dataToSend[1])
-                        {
-                            case 0x01:
-                                expectedResponseLength = 8;
-                                break;
-                            case 0x02:
-                                expectedResponseLength = 8;
-                                break;
-                            case 0x03:
-                                expectedResponseLength = 6;
-                                break;
-                            case 0x04:
-                                expectedResponseLength = 8;
-                                break;
-                            case 0x05:
-                                expectedResponseLength = 7;
-                                break;
-                        }
+                        case 0x01:
+                            _expectedResponseLength = 8;
+                            break;
+                        case 0x02:
+                            _expectedResponseLength = 8;
+                            break;
+                        case 0x03:
+                            _expectedResponseLength = 6;
+                            break;
+                        case 0x04:
+                            _expectedResponseLength = 8;
+                            break;
+                        case 0x05:
+                            _expectedResponseLength = 7;
+                            break;
+                    }
 
+                    comPort.Write(dataToSend, 0, dataToSend.Length);
+                    if (isCommandPacket) PrintSendData(dataToSend);
+
+                    if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
+                    {
                         // Wait for the expected number of bytes or timeout.
                         int responseLoopTimeoutCount = 0;
-                        while (comPort.BytesToRead < expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
+                        while (comPort.BytesToRead < _expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
                         {
                             Thread.Sleep(10);
                             responseLoopTimeoutCount++;
                         }
 
-                        if (comPort.BytesToRead < expectedResponseLength) expectedResponseLength = comPort.BytesToRead;
+                        if (comPort.BytesToRead < _expectedResponseLength) _expectedResponseLength = comPort.BytesToRead;
 
-                        dataReceived = new byte[expectedResponseLength];
-                        comPort.Read(dataReceived, 0, expectedResponseLength);
-                        bgSerial.ReportProgress(2, dataReceived);
+                        dataReceived = new byte[_expectedResponseLength];
+                        comPort.Read(dataReceived, 0, _expectedResponseLength);
+                        if(dataReceived.Length > 0)
+                            ProcessReceivedPacket(dataReceived);
                     }
                 }
-                else Thread.Sleep(20);
             }
         }
 
-        static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            dataReadyToRead.Set();
+            _dataReadyToRead.Set();
         }
 
-        static void pollSpinDown_Tick(object sender, EventArgs e)
+        private static void pollSpinDown_Tick(object sender, EventArgs e)
         {
             StopPolling();
         }

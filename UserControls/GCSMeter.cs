@@ -39,9 +39,16 @@ namespace SpindleTalker2
             get { return lbAnalogMeterBase.Value; }
             set
             {
-                lbAnalogMeterBase.Value = value;
-                labelValue.Text = value.ToString();
-                if (!String.IsNullOrEmpty(_Units)) labelValue.Text += " " + _Units;
+                if (labelValue.InvokeRequired)
+                {
+                    labelValue.Invoke(new Action(() => { Value = value; }));
+                }
+                else
+                {
+                    lbAnalogMeterBase.Value = value;
+                    labelValue.Text = value.ToString();
+                    if (!String.IsNullOrEmpty(_Units)) labelValue.Text += " " + _Units;
+                }
             }
         }
 

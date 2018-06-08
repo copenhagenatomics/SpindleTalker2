@@ -48,9 +48,10 @@
             this.labelMinMaxFreq = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.ButtonSaveQuickSet = new System.Windows.Forms.Button();
             this.textBoxQuickset = new System.Windows.Forms.TextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.ButtonSaveQuickSet = new System.Windows.Forms.Button();
+            this.buttonResetVFD = new System.Windows.Forms.Button();
             this.gbPortSettings.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
@@ -224,6 +225,7 @@
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.groupBox1.Controls.Add(this.buttonResetVFD);
             this.groupBox1.Controls.Add(this.numericUpDown4);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.labelMaxRPM);
@@ -310,15 +312,6 @@
             this.groupBox2.Text = "Quickset Speeds";
             this.toolTip1.SetToolTip(this.groupBox2, "Enter RPM values seperated by semi-colons");
             // 
-            // textBoxQuickset
-            // 
-            this.textBoxQuickset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxQuickset.Location = new System.Drawing.Point(4, 17);
-            this.textBoxQuickset.Multiline = true;
-            this.textBoxQuickset.Name = "textBoxQuickset";
-            this.textBoxQuickset.Size = new System.Drawing.Size(537, 27);
-            this.textBoxQuickset.TabIndex = 0;
-            // 
             // ButtonSaveQuickSet
             // 
             this.ButtonSaveQuickSet.Location = new System.Drawing.Point(547, 19);
@@ -328,6 +321,25 @@
             this.ButtonSaveQuickSet.Text = "Save";
             this.ButtonSaveQuickSet.UseVisualStyleBackColor = true;
             this.ButtonSaveQuickSet.Click += new System.EventHandler(this.ButtonSaveQuickSet_Click);
+            // 
+            // textBoxQuickset
+            // 
+            this.textBoxQuickset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxQuickset.Location = new System.Drawing.Point(4, 17);
+            this.textBoxQuickset.Multiline = true;
+            this.textBoxQuickset.Name = "textBoxQuickset";
+            this.textBoxQuickset.Size = new System.Drawing.Size(537, 27);
+            this.textBoxQuickset.TabIndex = 0;
+            // 
+            // buttonResetVFD
+            // 
+            this.buttonResetVFD.Location = new System.Drawing.Point(167, 17);
+            this.buttonResetVFD.Name = "buttonResetVFD";
+            this.buttonResetVFD.Size = new System.Drawing.Size(128, 23);
+            this.buttonResetVFD.TabIndex = 18;
+            this.buttonResetVFD.Text = "Factory Reset VFD";
+            this.buttonResetVFD.UseVisualStyleBackColor = true;
+            this.buttonResetVFD.Click += new System.EventHandler(this.buttonResetVFD_Click);
             // 
             // SettingsControl
             // 
@@ -374,5 +386,6 @@
         public System.Windows.Forms.Label labelMinMaxFreq;
         public System.Windows.Forms.Label labelMaxRPM;
         private System.Windows.Forms.Button ButtonSaveQuickSet;
+        private System.Windows.Forms.Button buttonResetVFD;
     }
 }

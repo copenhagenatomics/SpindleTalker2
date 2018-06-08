@@ -47,11 +47,9 @@ namespace SpindleTalker2.UserControls
             if (packetLength > 4) command[4] = _data1;
             if (packetLength > 5) command[5] = _data2;
 
-            var buffer = Serial.SendData(command);
-
             return new RegisterValue(_data0)
             {
-                Value = buffer[0].ToString()
+                Value = Serial.SendData(command).ToString()
             };
         }
 
@@ -96,7 +94,6 @@ namespace SpindleTalker2.UserControls
         private void ButtonDownload_Click(object sender, EventArgs e)
         {
             var dialog = new SaveFileDialog();
-            dialog.CheckFileExists = true;
             dialog.CheckPathExists = true;
             dialog.Filter = "csv file |(*.csv)";
             if (dialog.ShowDialog() == DialogResult.OK)
@@ -118,6 +115,7 @@ namespace SpindleTalker2.UserControls
                 }
 
                 File.WriteAllLines(dialog.FileName, lines);
+                MessageBox.Show("Finished downloading all values to file");
             }
         }
 
@@ -145,6 +143,8 @@ namespace SpindleTalker2.UserControls
                             Debug.Print(ex.ToString());
                         }
                     }
+
+                    MessageBox.Show("Finished uploading all values to VFD");
                 }
             }
         }

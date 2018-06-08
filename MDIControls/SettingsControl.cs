@@ -158,5 +158,10 @@ namespace SpindleTalker2
             Settings.spindleTalkerBase.populateQuickSets();
         }
 
+        private void buttonResetVFD_Click(object sender, EventArgs e)
+        {
+            byte[] factoryReset = new byte[] { (byte)Settings.VFD_ModBusID, (byte)CommandType.FunctionWrite, (byte)CommandLength.TwoBytes, 0x13, 0x08 };
+            Serial.SendDataAsync(factoryReset);
+        }
     }
 }
