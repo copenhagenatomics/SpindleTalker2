@@ -53,6 +53,15 @@ namespace SpindleTalker2
                     case (byte)Status.OutA:
                         MeterAmps.Value = (double)((double)value / 10);
                         break;
+                    case (byte)Status.DCV:
+                        Console.WriteLine("DC voltage: " + value/10.0);
+                        break;
+                    case (byte)Status.ACV:
+                        Console.WriteLine("AC voltage: " + value);
+                        break;
+                    case (byte)Status.Tmp:
+                        Console.WriteLine("VFD temperature: " + value);
+                        break;
                 }
             }
         }

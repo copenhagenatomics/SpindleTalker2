@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace VFDcontrol
 {
@@ -50,6 +47,8 @@ namespace VFDcontrol
 
             // For future testing, the spindle reverse function doesn't appear to be working
             Serial.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
+
+            Serial.InitialPollFinished(); // this is odd, should be handled in another way. 
         }
 
         public static void Stop()
