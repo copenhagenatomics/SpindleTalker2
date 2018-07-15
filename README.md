@@ -6,7 +6,7 @@ https://inverterdrive.com/group/Motors-AC/ac-Motor-550-Watts-2-pole-Foot-Face-Mo
 
 Original release text by Tommy Gilchrist:
 
-![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/ScreenShots/gauge.png)
+![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/SpindleTalkerDialog/ScreenShots/gauge.png)
 
 I'm pushing this out slightly undercooked as I'm heading off on holidays for a month :-) As such it's probably got a fair few bugs, I've only really done 'happy path' testing i.e. I haven't gone out of my way to do odd things to see what happens. There's limited error handling and I'd be fairly confident that there are a number of scenarios that will get the polling into a twist but restarting the app should reset things.
 
@@ -62,6 +62,6 @@ I've also left as much of the RS485 protocol command stack exposed as is practic
 
 Some additional screenshots
 
-![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/ScreenShots/terminal.png)
+![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/SpindleTalkerDialog/ScreenShots/terminal.png)
 
-![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/ScreenShots/settings.png)
+![alt text](https://github.com/copenhagenatomics/SpindleTalker2/blob/master/SpindleTalkerDialog/ScreenShots/settings.png)
