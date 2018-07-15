@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace VFDcontrol
@@ -237,6 +239,50 @@ namespace VFDcontrol
                     default: return "Unknown";
                 }
             }
+        }
+
+        public static bool Upload(string fileName, char csvSeperator)
+        {
+            var lines = RegisterValue.LoadCsv(fileName, csvSeperator);
+            if (lines != null)
+            {
+                foreach (var line in lines)
+                {
+                    try
+                    {
+                        Serial.SendCommand((byte)VFDcontrol.CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
+                        Thread.Sleep(10);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print(ex.ToString());
+                    }
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void Download(string fileName, char seperator)
+        {
+            var lines = new List<string>();
+            lines.Add(RegisterValue.Header(seperator));
+            for (int i = 1; i < 200; i++)
+            {
+                try
+                {
+                    var result = Serial.SendCommand((byte)VFDcontrol.CommandType.FunctionRead, 1, (byte)i, 0, 0);
+                    if (result != null)
+                        lines.Add(result.ToString(seperator));
+                }
+                catch (Exception ex)
+                {
+                    Debug.Print(ex.ToString());
+                }
+            }
+
+            File.WriteAllLines(fileName, lines);
         }
 
         public string DefaultValue

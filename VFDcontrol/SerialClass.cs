@@ -136,6 +136,28 @@ namespace VFDcontrol
             return validCRC;
         }
 
+        public static RegisterValue SendCommand(CommandType commandType, byte register, int value)
+        {
+            return SendCommand((byte)commandType, 3, register, (byte)(value & 0xFF), (byte)(value << 8));
+        }
+
+        public static RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, byte _data0, byte _data1, byte _data2)
+        {
+            int packetLength = selectedCommandLength + 3;
+            byte[] command = new byte[packetLength];
+            command[0] = (byte)VFDsettings.VFD_ModBusID;
+            command[1] = selectedCommandType;
+            command[2] = selectedCommandLength;
+            command[3] = _data0;
+            if (packetLength > 4) command[4] = _data1;
+            if (packetLength > 5) command[5] = _data2;
+
+            return new RegisterValue(_data0)
+            {
+                Value = SendData(command).ToString()
+            };
+        }
+
         public static void SendDataAsync(byte[] dataToSend)
         {
             lock (_commandQueue)

@@ -39,25 +39,9 @@ namespace SpindleTalker2.UserControls
             VFDcontrol.CommandType selectedCommandType = (VFDcontrol.CommandType)Enum.Parse(typeof(VFDcontrol.CommandType), cbCommandType.SelectedItem.ToString());
             CommandLength selectedCommandLength = (CommandLength)Enum.Parse(typeof(CommandLength), cbCommandLength.SelectedItem.ToString());
 
-            SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
+            Serial.SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
         }
 
-        private RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, byte _data0, byte _data1, byte _data2)
-        {
-            int packetLength = selectedCommandLength + 3;
-            byte[] command = new byte[packetLength];
-            command[0] = (byte)VFDsettings.VFD_ModBusID;
-            command[1] = selectedCommandType;
-            command[2] = selectedCommandLength;
-            command[3] = _data0;
-            if (packetLength > 4) command[4] = _data1;
-            if (packetLength > 5) command[5] = _data2;
-
-            return new RegisterValue(_data0)
-            {
-                Value = Serial.SendData(command).ToString()
-            };
-        }
 
         private void textBoxEnter(object sender, EventArgs e)
         {
@@ -104,23 +88,7 @@ namespace SpindleTalker2.UserControls
             dialog.Filter = "csv file |*.csv";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                var lines = new List<string>();
-                lines.Add(RegisterValue.Header(_settingsForm.csvSeperator));
-                for (int i=1; i<200; i++)
-                {
-                    try
-                    {
-                        var result = SendCommand((byte)VFDcontrol.CommandType.FunctionRead, 1, (byte)i, 0, 0);
-                        if(result != null)
-                            lines.Add(result.ToString(_settingsForm.csvSeperator));
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Print(ex.ToString());
-                    }
-                }
-
-                File.WriteAllLines(dialog.FileName, lines);
+                RegisterValue.Download(dialog.FileName, _settingsForm.csvSeperator);
                 MessageBox.Show("Finished downloading all values to file");
             }
         }
@@ -134,22 +102,8 @@ namespace SpindleTalker2.UserControls
             dialog.Filter = "csv file |*.csv";
             if(dialog.ShowDialog() == DialogResult.OK)
             {
-                var lines = RegisterValue.LoadCsv(dialog.FileName, _settingsForm.csvSeperator);
-                if(lines != null)
-                {
-                    foreach(var line in lines)
-                    {
-                        try
-                        {
-                            SendCommand((byte)VFDcontrol.CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
-                            Thread.Sleep(10);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Print(ex.ToString());
-                        }
-                    }
-
+                if(RegisterValue.Upload(dialog.FileName, _settingsForm.csvSeperator))
+                { 
                     MessageBox.Show("Finished uploading all values to VFD");
                 }
             }

@@ -20,7 +20,7 @@ namespace VFDcontrol
 
         static VFDsettings()
         {
-            string settingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SpindleTalker2");
+            string settingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VFDcontrol");
             if (!Directory.Exists(settingsDir)) Directory.CreateDirectory(settingsDir);
 
             settingsFile = Path.Combine(settingsDir, "settings.xml");
