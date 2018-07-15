@@ -33,7 +33,6 @@
             this.textBoxResponse = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.textBoxSent = new System.Windows.Forms.TextBox();
-            this.commandBuilder1 = new SpindleTalker2.UserControls.CommandBuilder();
             this.tableLayoutPanelSerialBase.SuspendLayout();
             this.groupBoxResponse.SuspendLayout();
             this.groupBox1.SuspendLayout();

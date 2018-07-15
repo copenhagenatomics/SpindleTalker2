@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace SpindleTalker2
+namespace VFDcontrol
 {
     // for more information see also:
     // https://github.com/bebro/linuxcnc-huanyang-vfd/blob/emc2/hy_modbus.c
@@ -33,6 +33,11 @@ namespace SpindleTalker2
 
         #endregion
 
+        public delegate void ProcessPollPacket(byte[] pollPacket);
+        public delegate void WriteTerminalForm(string message, bool send);
+        public static event ProcessPollPacket OnProcessPollPacket;
+        public static event WriteTerminalForm OnWriteTerminalForm;
+
         #region Public Methods
 
         public static void Connect()
@@ -46,7 +51,7 @@ namespace SpindleTalker2
             _doNotPoll = true;
 
             byte[] packet = new byte[6];
-            packet[0] = (byte)Settings.VFD_ModBusID;
+            packet[0] = (byte)VFDsettings.VFD_ModBusID;
             packet[1] = (byte)CommandType.ReadControlData;
             packet[2] = (byte)CommandLength.ThreeBytes;
             packet[3] = (byte)ModbusRegisters.CurrentRPM;
@@ -172,12 +177,12 @@ namespace SpindleTalker2
                 if (_doNotPoll == false)
                 {
                     // check if the received packet is a response to a status poll
-                    if (receivedPacket[0] == (byte)Settings.VFD_ModBusID &&
+                    if (receivedPacket[0] == (byte)VFDsettings.VFD_ModBusID &&
                         receivedPacket[1] == (byte)CommandType.ReadControlData &&
                         receivedPacket[2] == (byte)CommandLength.ThreeBytes &&
                         statusResponseBytes.Contains(receivedPacket[3]))
                     {
-                        Settings.graphsForm.ProcessPollPacket(receivedPacket);
+                        OnProcessPollPacket(receivedPacket);
                     }
                     else
                     {
@@ -185,7 +190,7 @@ namespace SpindleTalker2
                         _receivedQueue.Enqueue(receivedValue);
                         message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
                         Console.WriteLine(message);
-                        Settings.WriteTerminalForm(message, false);
+                        OnWriteTerminalForm(message, false);
                     }
                 }
                 else
@@ -197,55 +202,55 @@ namespace SpindleTalker2
                         switch (receivedPacket[3])
                         {
                             case (byte)ModbusRegisters.CurrentRPM:
-                                Settings.graphsForm.ProcessPollPacket(receivedPacket);
+                                OnProcessPollPacket(receivedPacket);
                                 return;
                             case (byte)ModbusRegisters.MaxFreq:
-                                Settings.VFD_MaxFreq = rawValue / 100;
-                                PrintReceivedData("Maximum Frequency (Hz)", Settings.VFD_MaxFreq);
+                                VFDsettings.VFD_MaxFreq = rawValue / 100;
+                                PrintReceivedData("Maximum Frequency (Hz)", VFDsettings.VFD_MaxFreq);
                                 return;
                             case (byte)ModbusRegisters.MinFreq:
-                                Settings.VFD_MinFreq = rawValue / 100;
-                                PrintReceivedData("Minimum Frequency (Hz)", Settings.VFD_MinFreq);
+                                VFDsettings.VFD_MinFreq = rawValue / 100;
+                                PrintReceivedData("Minimum Frequency (Hz)", VFDsettings.VFD_MinFreq);
                                 return;
                             case (byte)ModbusRegisters.MaxRPM:
-                                Settings.VFD_MaxRPM = rawValue;
-                                PrintReceivedData("Maximum RPM", Settings.VFD_MaxRPM);
+                                VFDsettings.VFD_MaxRPM = rawValue;
+                                PrintReceivedData("Maximum RPM", VFDsettings.VFD_MaxRPM);
                                 return;
                             case (byte)ModbusRegisters.IntermediateFreq:
-                                Settings.VFD_IntermediateFreq = rawValue / 100;
-                                PrintReceivedData("Intermediate Frequency", Settings.VFD_IntermediateFreq);
+                                VFDsettings.VFD_IntermediateFreq = rawValue / 100;
+                                PrintReceivedData("Intermediate Frequency", VFDsettings.VFD_IntermediateFreq);
                                 return;
                             case (byte)ModbusRegisters.MinimumFreq:
-                                Settings.VFD_MinimumFreq = rawValue / 100;
-                                PrintReceivedData("Minimum Frequency", Settings.VFD_MinimumFreq);
+                                VFDsettings.VFD_MinimumFreq = rawValue / 100;
+                                PrintReceivedData("Minimum Frequency", VFDsettings.VFD_MinimumFreq);
                                 return;
                             case (byte)ModbusRegisters.MaxVoltage:
-                                Settings.VFD_MaxVoltage = rawValue / 10.0;
-                                PrintReceivedData("Maximum Output Voltage", Settings.VFD_MaxVoltage);
+                                VFDsettings.VFD_MaxVoltage = rawValue / 10.0;
+                                PrintReceivedData("Maximum Output Voltage", VFDsettings.VFD_MaxVoltage);
                                 return;
                             case (byte)ModbusRegisters.IntermediateVoltage:
-                                Settings.VFD_IntermediateVoltage = rawValue / 10.0;
-                                PrintReceivedData("Intermediate Voltage", Settings.VFD_IntermediateVoltage);
+                                VFDsettings.VFD_IntermediateVoltage = rawValue / 10.0;
+                                PrintReceivedData("Intermediate Voltage", VFDsettings.VFD_IntermediateVoltage);
                                 return;
                             case (byte)ModbusRegisters.MinVoltage:
-                                Settings.VFD_MinVoltage = rawValue / 10;
-                                PrintReceivedData("Minimum Voltage", Settings.VFD_MinVoltage);
+                                VFDsettings.VFD_MinVoltage = rawValue / 10;
+                                PrintReceivedData("Minimum Voltage", VFDsettings.VFD_MinVoltage);
                                 return;
                             case (byte)ModbusRegisters.RatedMotorVoltage:
-                                Settings.VFD_RatedMotorVoltage = rawValue / 10.0;
-                                PrintReceivedData("Rated Motor Voltage", Settings.VFD_RatedMotorVoltage);
+                                VFDsettings.VFD_RatedMotorVoltage = rawValue / 10.0;
+                                PrintReceivedData("Rated Motor Voltage", VFDsettings.VFD_RatedMotorVoltage);
                                 return;
                             case (byte)ModbusRegisters.RatedMotorCurrent:
-                                Settings.VFD_RatedMotorCurrent = rawValue;
-                                PrintReceivedData("Rated Motor Current", Settings.VFD_RatedMotorCurrent);
+                                VFDsettings.VFD_RatedMotorCurrent = rawValue;
+                                PrintReceivedData("Rated Motor Current", VFDsettings.VFD_RatedMotorCurrent);
                                 return;
                             case (byte)ModbusRegisters.NumberOfMotorPols:
-                                Settings.VFD_NumberOfMotorPols = rawValue;
-                                PrintReceivedData("Number Of Motor Pols", Settings.VFD_NumberOfMotorPols);
+                                VFDsettings.VFD_NumberOfMotorPols = rawValue;
+                                PrintReceivedData("Number Of Motor Pols", VFDsettings.VFD_NumberOfMotorPols);
                                 return;
                             case (byte)ModbusRegisters.InverterFrequency:
-                                Settings.VFD_InverterFrequency = rawValue == 1?60:50;
-                                PrintReceivedData("Inverter Frequency (Hz)", Settings.VFD_InverterFrequency);
+                                VFDsettings.VFD_InverterFrequency = rawValue == 1?60:50;
+                                PrintReceivedData("Inverter Frequency (Hz)", VFDsettings.VFD_InverterFrequency);
                                 return;
                         }
 
@@ -270,17 +275,17 @@ namespace SpindleTalker2
             int sentValue = Convert.ToInt32((buffer[buffer.Length - 4] << 8) + buffer[buffer.Length - 3]);
             string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data sent : {ByteArrayToHexString(buffer)} ({sentValue})";
             Console.WriteLine(message);
-            Settings.WriteTerminalForm(message, true);
+            OnWriteTerminalForm(message, true);
         }
 
         static void DoWork()
         {
             SerialPort comPort = new SerialPort();
-            comPort.BaudRate = Settings.BaudRate;
-            comPort.DataBits = Settings.DataBits;
-            comPort.StopBits = Settings.StopBits;
-            comPort.Parity = Settings.Parity;
-            comPort.PortName = Settings.PortName;
+            comPort.BaudRate = VFDsettings.BaudRate;
+            comPort.DataBits = VFDsettings.DataBits;
+            comPort.StopBits = VFDsettings.StopBits;
+            comPort.Parity = VFDsettings.Parity;
+            comPort.PortName = VFDsettings.PortName;
 
             try
             {
@@ -289,18 +294,18 @@ namespace SpindleTalker2
             catch (Exception ex)
             {
                 Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.fff")} - Error : {ex.Message}");
-                Settings.SerialConnected = false;
+                VFDsettings.SerialConnected = false;
                 return;
             }
 
             if (comPort.IsOpen)
             {
                 comPort.DataReceived += comPort_DataReceived;
-                Settings.SerialConnected = true; // Report that the COM port has opened sucessfully
+                VFDsettings.SerialConnected = true; // Report that the COM port has opened sucessfully
             }
 
             byte[] statusRequestPacket = new byte[6];
-            statusRequestPacket[0] = (byte)Settings.VFD_ModBusID; // Slave address
+            statusRequestPacket[0] = (byte)VFDsettings.VFD_ModBusID; // Slave address
             statusRequestPacket[1] = (byte)CommandType.ReadControlData; // Huanyang VFD Read Control Data
             statusRequestPacket[2] = (byte)CommandLength.ThreeBytes; // Number of bytes in request field
             statusRequestPacket[3] = (byte)ModbusRegisters.SetFreq; // Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
@@ -349,7 +354,7 @@ namespace SpindleTalker2
                         {
                             case 0xff:
                                 comPort.Close();
-                                Settings.SerialConnected = false;
+                                VFDsettings.SerialConnected = false;
                                 return;
                             case 0x01:
                                 statusRequestPacket[3] = 0x01;

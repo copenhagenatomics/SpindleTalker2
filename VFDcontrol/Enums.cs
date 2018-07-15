@@ -3,10 +3,10 @@
 
 using System;
 
-namespace SpindleTalker2
+namespace VFDcontrol
 {
     [Flags]
-    enum CommandType
+    public enum CommandType
     {
         FunctionRead = 0x01,  // response length unknown
         FunctionWrite = 0x02,  // response length 8
@@ -19,7 +19,7 @@ namespace SpindleTalker2
     }
 
     [Flags]
-    enum Status
+    public enum Status
     {
         SetF = 0x00,
         OutF = 0x01,
@@ -32,7 +32,7 @@ namespace SpindleTalker2
     }
 
     [Flags]
-    enum ControlCommands
+    public enum ControlCommands
     {
         Run_Fwd = 0x01,
         Stop = 0x08,
@@ -40,7 +40,7 @@ namespace SpindleTalker2
     }
 
     [Flags]
-    enum CommandLength
+    public enum CommandLength
     {
         OneByte = 0x01,
         TwoBytes = 0x02,
@@ -59,13 +59,13 @@ namespace SpindleTalker2
         Track_Start = 0x80,
     }
 
-    enum SpindleDirection
+    public enum SpindleDirection
     {
         Forward,
         Backwards,
     }
 
-    enum ModbusRegisters
+    public enum ModbusRegisters
     {
         //Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
         SetFreq = 0x00,

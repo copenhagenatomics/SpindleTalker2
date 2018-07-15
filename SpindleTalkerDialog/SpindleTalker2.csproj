@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SpindleTalker2</RootNamespace>
     <AssemblyName>SpindleTalker2</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -60,13 +60,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Enums.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RegisterValue.cs" />
     <Compile Include="UserControls\CommandBuilder.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -85,7 +83,6 @@
     <Compile Include="MDIControls\MeterControl.Designer.cs">
       <DependentUpon>MeterControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="SerialClass.cs" />
     <Compile Include="UserControls\SetSpeedPopup.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -98,16 +95,12 @@
     <Compile Include="MDIControls\TerminalControl.Designer.cs">
       <DependentUpon>TerminalControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="SettingsClass.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="MDIControls\SettingsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="MDIControls\SettingsControl.Designer.cs">
       <DependentUpon>SettingsControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="SpindleClass.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -184,6 +177,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="package_settings.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VFDcontrol\VFDcontrol.csproj">
+      <Project>{a9cc462d-55ca-4ba4-b1b3-c02dcb932fef}</Project>
+      <Name>VFDcontrol</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

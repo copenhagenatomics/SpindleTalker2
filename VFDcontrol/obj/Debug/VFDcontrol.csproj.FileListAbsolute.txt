@@ -1,0 +1,5 @@
+C:\Code\SpindleTalker2\VFDcontrol\obj\Debug\VFDcontrol.csproj.CoreCompileInputs.cache
+C:\Code\SpindleTalker2\VFDcontrol\bin\Debug\VFDcontrol.dll
+C:\Code\SpindleTalker2\VFDcontrol\bin\Debug\VFDcontrol.pdb
+C:\Code\SpindleTalker2\VFDcontrol\obj\Debug\VFDcontrol.dll
+C:\Code\SpindleTalker2\VFDcontrol\obj\Debug\VFDcontrol.pdb

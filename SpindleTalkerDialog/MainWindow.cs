@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using SpindleTalker2.Properties;
+using VFDcontrol;
 
 namespace SpindleTalker2
 {
@@ -18,25 +19,29 @@ namespace SpindleTalker2
 
         #region Initialisation
 
-        int howLongToWait = 5000;
+        private int howLongToWait = 5000;
+        private MeterControl _meterControl;
 
         public MainWindow()
         {
             InitializeComponent();
+            VFDsettings.OnSerialPortConnected += COMPortStatus;
         }
 
         private System.Diagnostics.Stopwatch stopWatchInitialPoll = new System.Diagnostics.Stopwatch();
 
         private void SpindleTalker_Load(object sender, EventArgs e)
         {
-            Settings.spindleTalkerBase = this;
             ChangeGtrackbarColours(false);
 
-            panelMain.Controls.AddRange(new Control[] { Settings.graphsForm, Settings.terminalForm, Settings.settingsForm });
+            var settingsForm = new SettingsControl(this);
+            var terminalForm = new TerminalControl(settingsForm);
+            _meterControl = new MeterControl(this);
+            panelMain.Controls.AddRange(new Control[] {_meterControl, terminalForm, settingsForm });
             foreach (Control ctrl in panelMain.Controls)
             {
                 ctrl.Dock = DockStyle.Fill;
-                if (ctrl.Tag.ToString() == Settings.LastMDIChild)
+                if (ctrl.Tag.ToString() == VFDsettings.LastMDIChild)
                 {
                     ctrl.BringToFront();
                     foreach(Button button in panelMDI.Controls)
@@ -48,7 +53,7 @@ namespace SpindleTalker2
 
             }
 
-            Settings.settingsForm.InitializeControlValues();
+            settingsForm.InitializeControlValues();
 
             if(SerialPort.GetPortNames().Length == 0)
             {
@@ -58,7 +63,7 @@ namespace SpindleTalker2
                 return;
             }
 
-            if (Settings.AutoConnectAtStartup)
+            if (VFDsettings.AutoConnectAtStartup)
             {
                 Serial.Connect();
                 timerInitialPoll.Start();
@@ -67,11 +72,11 @@ namespace SpindleTalker2
 
         }
 
-        public void populateQuickSets()
+        public void PopulateQuickSets()
         {
             while (flowLayoutPanelQuickSets.Controls.Count > 0) flowLayoutPanelQuickSets.Controls[0].Dispose();
 
-            string[] quickSetSpeeds = Settings.QuickSets.Split(';');
+            string[] quickSetSpeeds = VFDsettings.QuickSets.Split(';');
 
             foreach (string quickSetSpeed in quickSetSpeeds)
             {
@@ -107,27 +112,27 @@ namespace SpindleTalker2
                 }
             }
 
-            Settings.LastMDIChild = senderItem.Tag.ToString();
+            VFDsettings.LastMDIChild = senderItem.Tag.ToString();
 
         }
 
         private void buttonConnect_Click(object sender, EventArgs e)
         {
-            if (Settings.SerialConnected)
+            if (VFDsettings.SerialConnected)
             {
-                if(Settings.graphsForm.MeterRPM.Value > 0)
+                if(_meterControl.MeterRPM.Value > 0)
                     if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to disconnect?", 
                         "Spindle still running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
                             != System.Windows.Forms.DialogResult.Yes) return;
                 
                 Serial.Disconnect();
                 Thread.Sleep(500);
-                Settings.graphsForm.ZeroAll();
+                _meterControl.ZeroAll();
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxQuickSets.Enabled = false;
                 ChangeGtrackbarColours(false);
-                Settings.ClearVFDSettings();
+                VFDsettings.ClearVFDSettings();
                 toolStripStatusRPM.Text = "Current RPM Unknown (Not Connected)";
                 toolStripStatusRPM.Image = Resources.orangeLED;
             }
@@ -189,7 +194,7 @@ namespace SpindleTalker2
 
         private void SpindleTalker_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if(Settings.graphsForm.MeterOutF.Value > 0)
+            if(_meterControl.MeterOutF.Value > 0)
             {
                 if(MessageBox.Show("Spindle appears to still be running, are you sure you wish to exit?", "Spindle still running", MessageBoxButtons.OKCancel,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button1) != System.Windows.Forms.DialogResult.OK)
                 { 
@@ -197,23 +202,23 @@ namespace SpindleTalker2
                     return;
                 }
             }
-            Settings.Save();
+            VFDsettings.Save();
         }
 
         public void COMPortStatus(bool connected)
         {
             toolStripStatusLabelComPort.Image = (connected ? Resources.greenLED : Resources.redLED);
-            toolStripStatusLabelComPort.Text = Settings.PortName + (connected ? " (connected)" : " (disconnected)");
+            toolStripStatusLabelComPort.Text = VFDsettings.PortName + (connected ? " (connected)" : " (disconnected)");
             toolStripStatusLabelVFDStatus.Image = Resources.orangeLED;
             toolStripStatusLabelVFDStatus.Text = (connected ? "VFD polling" : "VFD Disconnected");
             buttonConnect.Image = (connected ? Resources.connect2 : Resources.disconnect2);
             string status = (connected ? "opened" : "closed");
-            Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, Settings.PortName, status));
+            Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, VFDsettings.PortName, status));
         }
 
         private void gTrackBarSpindleSpeed_ValueChanged(object sender, EventArgs e)
         {
-            if (gTrackBarSpindleSpeed.Value < Settings.VFD_MinRPM) gTrackBarSpindleSpeed.Value = Settings.VFD_MinRPM;
+            if (gTrackBarSpindleSpeed.Value < VFDsettings.VFD_MinRPM) gTrackBarSpindleSpeed.Value = VFDsettings.VFD_MinRPM;
             Spindle.SetRPM(gTrackBarSpindleSpeed.Value);
         }
 
@@ -256,18 +261,18 @@ namespace SpindleTalker2
 
         private void timerInitialPoll_Tick(object sender, EventArgs e)
         {
-            if (Settings.VFD_MaxFreq > 0 && Settings.VFD_MinFreq >= 0 && Settings.VFD_MaxRPM > 0 && Settings.graphsForm.MeterRPM.Value >= 0)
+            if (VFDsettings.VFD_MaxFreq > 0 && VFDsettings.VFD_MinFreq >= 0 && VFDsettings.VFD_MaxRPM > 0 && _meterControl.MeterRPM.Value >= 0)
             {
                 timerInitialPoll.Stop();
                 Serial.InitialPollFinished();
-                Settings.VFD_MaxRPM = (Settings.VFD_MaxRPM / 50) * Settings.VFD_MaxFreq;
-                populateQuickSets();
+                VFDsettings.VFD_MaxRPM = (VFDsettings.VFD_MaxRPM / 50) * VFDsettings.VFD_MaxFreq;
+                PopulateQuickSets();
                 toolStripStatusLabelVFDStatus.Text = "VFD Settings Downloaded";
                 toolStripStatusLabelVFDStatus.Image = Resources.greenLED;
                 groupBoxSpindleControl.Enabled = true;
                 Thread.Sleep(100);
 
-                if (Settings.graphsForm.MeterRPM.Value > 0)
+                if (_meterControl.MeterRPM.Value > 0)
                 {
                     //this.SuspendLayout();
                     buttonStart.Enabled = false;
@@ -275,8 +280,8 @@ namespace SpindleTalker2
                     groupBoxSpindleSpeed.Enabled = true;
                     ChangeGtrackbarColours(true);
                     groupBoxQuickSets.Enabled = true;
-                    populateQuickSets();
-                    gTrackBarSpindleSpeed.Value = (int)Settings.graphsForm.MeterRPM.Value;
+                    PopulateQuickSets();
+                    gTrackBarSpindleSpeed.Value = (int)_meterControl.MeterRPM.Value;
                     //this.ResumeLayout();
                 }
             }

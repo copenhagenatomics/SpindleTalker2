@@ -4,16 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpindleTalker2
+namespace VFDcontrol
 {
-    static class Spindle
+    public static class Spindle
     {
+        public delegate void SpindleShuttingDown(bool stop);
+        public static event SpindleShuttingDown OnSpindleShuttingDown;
+
         #region Control packet definitions
 
-        static byte[] ReadCurrentSetF = new byte[] { (byte)Settings.VFD_ModBusID, (byte)CommandType.ReadControlData, (byte)CommandLength.OneByte, (byte)Status.SetF };
-        static byte[] RunForward = new byte[] { (byte)Settings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Fwd };
-        static byte[] RunBack = new byte[] { (byte)Settings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Rev };
-        static byte[] stopSpindle = new byte[] { (byte)Settings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Stop };
+        static byte[] ReadCurrentSetF = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.ReadControlData, (byte)CommandLength.OneByte, (byte)Status.SetF };
+        static byte[] RunForward = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Fwd };
+        static byte[] RunBack = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Rev };
+        static byte[] stopSpindle = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Stop };
 
         #endregion
 
@@ -43,7 +46,7 @@ namespace SpindleTalker2
             //
 
             Serial.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
-            SetFrequency(Settings.VFD_MinFreq); 
+            SetFrequency(VFDsettings.VFD_MinFreq); 
 
             // For future testing, the spindle reverse function doesn't appear to be working
             Serial.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
@@ -52,7 +55,7 @@ namespace SpindleTalker2
         public static void Stop()
         {
             Serial.SendDataAsync(stopSpindle);
-            Settings.graphsForm.SpindleShuttingDown = true;
+            OnSpindleShuttingDown(true);
             pollSpinDown.Start(); // start a timer to shutdown polling in 10 secs to allow time for the spindle to stop
         }
 
@@ -67,7 +70,7 @@ namespace SpindleTalker2
             //   Calculate the frequency that equates to the target RPM by working out the target RPM as
             //   a fraction of the max RPM and then multiplying that by the max Frequency.
             //
-            int targetFrequency = (int)(((double)targetRPM / (double)Settings.VFD_MaxRPM) * (double)Settings.VFD_MaxFreq);
+            int targetFrequency = (int)(((double)targetRPM / (double)VFDsettings.VFD_MaxRPM) * (double)VFDsettings.VFD_MaxFreq);
             SetFrequency(targetFrequency);
         }
 
@@ -78,16 +81,16 @@ namespace SpindleTalker2
             //   spindle. I assume that the VFD will ignore values above max (haven't tested) but values below the
             //   minumum recommended frequency for air-cooled spindles can cause major overheating issues.
             //
-            if (targetFrequency < Settings.VFD_MinFreq) targetFrequency = Settings.VFD_MinFreq;
-            else if (targetFrequency > Settings.VFD_MaxFreq) targetFrequency = Settings.VFD_MaxFreq;
+            if (targetFrequency < VFDsettings.VFD_MinFreq) targetFrequency = VFDsettings.VFD_MinFreq;
+            else if (targetFrequency > VFDsettings.VFD_MaxFreq) targetFrequency = VFDsettings.VFD_MaxFreq;
 
             targetFrequency = targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz
 
-            Settings.graphsForm.SpindleShuttingDown = false; // Ensure the SetF graph draws properly/
+            OnSpindleShuttingDown(false); // Ensure the SetF graph draws properly/
 
             // Construct the control packet
             byte[] controlPacket = new byte[5];
-            controlPacket[0] = (byte)Settings.VFD_ModBusID;
+            controlPacket[0] = (byte)VFDsettings.VFD_ModBusID;
             controlPacket[1] = (byte)CommandType.WriteInverterFrequencyData;
             controlPacket[2] = (byte)CommandLength.TwoBytes;
             controlPacket[3] = (byte)(targetFrequency >> 8); // Bitshift right to get bits nine to 16 of the int32 value
