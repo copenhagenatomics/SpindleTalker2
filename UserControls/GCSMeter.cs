@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace SpindleTalker2
 {
@@ -39,15 +40,22 @@ namespace SpindleTalker2
             get { return lbAnalogMeterBase.Value; }
             set
             {
-                if (labelValue.InvokeRequired)
+                try
                 {
-                    labelValue.Invoke(new Action(() => { Value = value; }));
+                    if (labelValue.InvokeRequired)
+                    {
+                        labelValue.Invoke(new Action(() => { Value = value; }));
+                    }
+                    else
+                    {
+                        lbAnalogMeterBase.Value = value;
+                        labelValue.Text = value.ToString();
+                        if (!String.IsNullOrEmpty(_Units)) labelValue.Text += " " + _Units;
+                    }
                 }
-                else
+                catch (InvalidAsynchronousStateException ex)
                 {
-                    lbAnalogMeterBase.Value = value;
-                    labelValue.Text = value.ToString();
-                    if (!String.IsNullOrEmpty(_Units)) labelValue.Text += " " + _Units;
+                    Debug.Print(ex.Message);
                 }
             }
         }
