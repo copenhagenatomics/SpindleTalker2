@@ -14,7 +14,7 @@ namespace SpindleTalker2
     {
         public TerminalControl(SettingsControl settingsControl)
         {
-            this.commandBuilder1 = new SpindleTalker2.UserControls.CommandBuilder(this, settingsControl);
+            this.commandBuilder1 = new UserControls.CommandBuilder(this, settingsControl);
             InitializeComponent();
             Serial.OnWriteTerminalForm += Serial_WriteTerminalForm;
         }

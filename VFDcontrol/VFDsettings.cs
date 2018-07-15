@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Ports;
-using System.Text;
-using System.Xml;
-using System.Collections;
-using System.Drawing;
-using System.ComponentModel;
 using VFDcontrol.Settings4Net;
 
 namespace VFDcontrol
@@ -46,7 +40,7 @@ namespace VFDcontrol
             set
             {
                 _serialConnected = value;
-                OnSerialPortConnected(value);
+                OnSerialPortConnected?.Invoke(value);
             }
         }
         private static bool _serialConnected;
@@ -99,7 +93,7 @@ namespace VFDcontrol
             set
             {
                 _VFD_MinFreq = value;
-                OnFreqChanged(_VFD_MinFreq, _VFD_MaxFreq);
+                OnFreqChanged?.Invoke(_VFD_MinFreq, _VFD_MaxFreq);
             }
         }
         private static int _VFD_MinFreq;
@@ -110,8 +104,8 @@ namespace VFDcontrol
             set
             {
                 _VFD_MaxFreq = value;
-                OnFreqChanged(_VFD_MinFreq, _VFD_MaxFreq);
-                OnMaxFreqChanged(_VFD_MaxFreq);
+                OnFreqChanged?.Invoke(_VFD_MinFreq, _VFD_MaxFreq);
+                OnMaxFreqChanged?.Invoke(_VFD_MaxFreq);
             }
         }
         private static int _VFD_MaxFreq;
@@ -122,7 +116,7 @@ namespace VFDcontrol
             set
             {
                 _VFD_MaxRPM = value;
-                OnRpmChanged(_VFD_MaxRPM);   
+                OnRpmChanged?.Invoke(_VFD_MaxRPM);   
             }
         }
         private static int _VFD_MaxRPM;

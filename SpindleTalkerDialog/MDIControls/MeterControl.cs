@@ -14,12 +14,12 @@ namespace SpindleTalker2
 {
     public partial class MeterControl : UserControl  
     {
-        private MainWindow _spindleTalkerBase;
+        private MainWindow _mainWindow;
 
         public MeterControl(MainWindow spindleTalkerBase)
         {
             InitializeComponent();
-            _spindleTalkerBase = spindleTalkerBase;
+            _mainWindow = spindleTalkerBase;
             Serial.OnProcessPollPacket += Serial_ProcessPollPacket;
             VFDsettings.OnMaxFreqChanged += VFDsettings_OnMaxFreqChanged;
             VFDsettings.OnRpmChanged += VFDsettings_OnRpmChanged;
@@ -30,7 +30,7 @@ namespace SpindleTalker2
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() => Serial_ProcessPollPacket(pollPacket)));
+                try { this.Invoke(new Action(() => Serial_ProcessPollPacket(pollPacket))); } catch { }
             }
             else
             {
@@ -47,8 +47,8 @@ namespace SpindleTalker2
                         MeterRPM.Value = (double)(value);
                         Image toolstripImage = (value > 0 ? Resources.greenLED : Resources.redLED);
                         string status = (value > 0 ? string.Format("Current RPM = {0:#,##0}", value) : "Spindle is stopped");
-                        _spindleTalkerBase.toolStripStatusRPM.Text = status;
-                        _spindleTalkerBase.toolStripStatusRPM.Image = toolstripImage;
+                        _mainWindow.toolStripStatusRPM.Text = status;
+                        _mainWindow.toolStripStatusRPM.Image = toolstripImage;
                         break;
                     case (byte)Status.OutA:
                         MeterAmps.Value = (double)((double)value / 10);

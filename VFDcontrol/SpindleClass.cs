@@ -55,7 +55,7 @@ namespace VFDcontrol
         public static void Stop()
         {
             Serial.SendDataAsync(stopSpindle);
-            OnSpindleShuttingDown(true);
+            OnSpindleShuttingDown?.Invoke(true);
             pollSpinDown.Start(); // start a timer to shutdown polling in 10 secs to allow time for the spindle to stop
         }
 
@@ -86,7 +86,7 @@ namespace VFDcontrol
 
             targetFrequency = targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz
 
-            OnSpindleShuttingDown(false); // Ensure the SetF graph draws properly/
+            OnSpindleShuttingDown?.Invoke(false); // Ensure the SetF graph draws properly/
 
             // Construct the control packet
             byte[] controlPacket = new byte[5];

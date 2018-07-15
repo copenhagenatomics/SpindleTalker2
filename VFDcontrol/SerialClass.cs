@@ -182,7 +182,7 @@ namespace VFDcontrol
                         receivedPacket[2] == (byte)CommandLength.ThreeBytes &&
                         statusResponseBytes.Contains(receivedPacket[3]))
                     {
-                        OnProcessPollPacket(receivedPacket);
+                        OnProcessPollPacket?.Invoke(receivedPacket);
                     }
                     else
                     {
@@ -190,7 +190,7 @@ namespace VFDcontrol
                         _receivedQueue.Enqueue(receivedValue);
                         message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
                         Console.WriteLine(message);
-                        OnWriteTerminalForm(message, false);
+                        OnWriteTerminalForm?.Invoke(message, false);
                     }
                 }
                 else
@@ -202,7 +202,7 @@ namespace VFDcontrol
                         switch (receivedPacket[3])
                         {
                             case (byte)ModbusRegisters.CurrentRPM:
-                                OnProcessPollPacket(receivedPacket);
+                                OnProcessPollPacket?.Invoke(receivedPacket);
                                 return;
                             case (byte)ModbusRegisters.MaxFreq:
                                 VFDsettings.VFD_MaxFreq = rawValue / 100;
@@ -275,7 +275,7 @@ namespace VFDcontrol
             int sentValue = Convert.ToInt32((buffer[buffer.Length - 4] << 8) + buffer[buffer.Length - 3]);
             string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data sent : {ByteArrayToHexString(buffer)} ({sentValue})";
             Console.WriteLine(message);
-            OnWriteTerminalForm(message, true);
+            OnWriteTerminalForm?.Invoke(message, true);
         }
 
         static void DoWork()
