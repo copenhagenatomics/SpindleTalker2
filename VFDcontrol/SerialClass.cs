@@ -138,7 +138,7 @@ namespace VFDcontrol
 
         public static RegisterValue SendCommand(CommandType commandType, byte register, int value)
         {
-            return SendCommand((byte)commandType, 3, register, (byte)(value & 0xFF), (byte)(value << 8));
+            return SendCommand((byte)commandType, 3, register, (byte)(value & 0xFF), (byte)(value >> 8));
         }
 
         public static RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, byte _data0, byte _data1, byte _data2)
