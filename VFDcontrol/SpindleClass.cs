@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Threading;
 
 namespace VFDcontrol
 {
@@ -16,19 +16,6 @@ namespace VFDcontrol
         static byte[] stopSpindle = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Stop };
 
         #endregion
-
-        //
-        // This is a timer to stop polling (to save CPU cycles) when the spindle is off.
-        // If the poll process is stopped at the same time as the spindle stop command is sent
-        // the meters will continue to show the running values at the time the stop signal was sent
-        //
-        private static System.Windows.Forms.Timer pollSpinDown = new System.Windows.Forms.Timer();
-
-        static Spindle()
-        {
-            pollSpinDown.Interval = 10000; // 10 secs
-            pollSpinDown.Tick += pollSpinDown_Tick; 
-        }
 
         public static void Start(SpindleDirection direction)
         {
@@ -55,7 +42,8 @@ namespace VFDcontrol
         {
             Serial.SendDataAsync(stopSpindle);
             OnSpindleShuttingDown?.Invoke(true);
-            pollSpinDown.Start(); // start a timer to shutdown polling in 10 secs to allow time for the spindle to stop
+            Thread.Sleep(5000);  // wait 5 secs to allow time for the motor to stop
+            Serial.StopPolling();
         }
 
         public static void SetRPM(int targetRPM)
@@ -97,15 +85,6 @@ namespace VFDcontrol
 
             Serial.SendDataAsync(controlPacket);
         }
-
-
-        static void pollSpinDown_Tick(object sender, EventArgs e)
-        {
-            Serial.StopPolling();
-            pollSpinDown.Stop();
-        }
-
-
     }
 
 }
