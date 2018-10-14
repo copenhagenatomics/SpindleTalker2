@@ -24,7 +24,7 @@ namespace VFDcontrol
             if (!Directory.Exists(settingsDir)) Directory.CreateDirectory(settingsDir);
 
             settingsFile = Path.Combine(settingsDir, "settings.xml");
-            Console.WriteLine(settingsFile);
+            Console.WriteLine($"Motor controller settings file: {settingsFile}");
 
             if (File.Exists(settingsFile))
                 _settings.Open(settingsFile);

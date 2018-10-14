@@ -316,13 +316,14 @@ namespace VFDcontrol
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.fff")} - Error : {ex.Message}");
+                Console.WriteLine($"Unable to open serial port {comPort.PortName}, {comPort.BaudRate}");
                 VFDsettings.SerialConnected = false;
                 return;
             }
 
             if (comPort.IsOpen)
             {
+                Console.WriteLine($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}");
                 comPort.DataReceived += comPort_DataReceived;
                 VFDsettings.SerialConnected = true; // Report that the COM port has opened sucessfully
             }
