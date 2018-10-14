@@ -165,7 +165,6 @@ namespace VFDcontrol
             lock (_commandQueue)
             {
                 _commandQueue.Enqueue(crc16byte(dataToSend));
-                DebugPrint($"_commandQueue.Enqueue: {ByteArrayToHexString(dataToSend)}");
             }
             _spindleActive.Set();
         }
@@ -215,7 +214,7 @@ namespace VFDcontrol
                         int receivedValue = Convert.ToInt32((receivedPacket[receivedPacket.Length - 4] << 8) + receivedPacket[receivedPacket.Length - 3]);
                         _receivedQueue.Enqueue(receivedValue);
                         message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
-                        DebugPrint(message);
+                        Debug.Print(message);
                         OnWriteTerminalForm?.Invoke(message, false);
                     }
                 }
@@ -293,7 +292,7 @@ namespace VFDcontrol
 
         private static void PrintReceivedData(string text, double value)
         {
-            DebugPrint($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
+            Debug.Print($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
         }
 
         private static void PrintSendData(byte[] buffer)
@@ -358,7 +357,7 @@ namespace VFDcontrol
                     {
                         dataToSend = _commandQueue.Dequeue();
                         isCommandPacket = true;
-                        DebugPrint($"{DateTime.Now.ToString("H:mm:ss.fff")} - Send data!");
+                        Debug.Print($"{DateTime.Now.ToString("H:mm:ss.fff")} - Send data!");
                     }
                     else
                     {
