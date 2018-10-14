@@ -23,6 +23,7 @@ namespace VFDcontrol
         private static int _expectedResponseLength = 0;
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
         private static bool _doNotPoll = true; // for debug testing purposes
+        private static bool _debugPrint = false;
 
         static Serial()
         {
@@ -41,8 +42,9 @@ namespace VFDcontrol
 
         #region Public Methods
 
-        public static void Connect()
+        public static void Connect(bool debug = false)
         {
+            _debugPrint = debug;
             _spindleActive.Reset();   
             InitialPoll();
         }
@@ -163,6 +165,7 @@ namespace VFDcontrol
             lock (_commandQueue)
             {
                 _commandQueue.Enqueue(crc16byte(dataToSend));
+                DebugPrint($"_commandQueue.Enqueue: {ByteArrayToHexString(dataToSend)}");
             }
             _spindleActive.Set();
         }
@@ -212,7 +215,7 @@ namespace VFDcontrol
                         int receivedValue = Convert.ToInt32((receivedPacket[receivedPacket.Length - 4] << 8) + receivedPacket[receivedPacket.Length - 3]);
                         _receivedQueue.Enqueue(receivedValue);
                         message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
-                        Debug.WriteLine(message);
+                        DebugPrint(message);
                         OnWriteTerminalForm?.Invoke(message, false);
                     }
                 }
@@ -290,14 +293,14 @@ namespace VFDcontrol
 
         private static void PrintReceivedData(string text, double value)
         {
-            Debug.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
+            DebugPrint($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
         }
 
         private static void PrintSendData(byte[] buffer)
         {
             int sentValue = Convert.ToInt32((buffer[buffer.Length - 4] << 8) + buffer[buffer.Length - 3]);
             string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data sent : {ByteArrayToHexString(buffer)} ({sentValue})";
-            Debug.WriteLine(message);
+            DebugPrint(message);
             OnWriteTerminalForm?.Invoke(message, true);
         }
 
@@ -355,7 +358,7 @@ namespace VFDcontrol
                     {
                         dataToSend = _commandQueue.Dequeue();
                         isCommandPacket = true;
-                        Debug.WriteLine($"{DateTime.Now.ToString("H:mm:ss.fff")} - Send data!");
+                        DebugPrint($"{DateTime.Now.ToString("H:mm:ss.fff")} - Send data!");
                     }
                     else
                     {
@@ -428,6 +431,11 @@ namespace VFDcontrol
                     }
                 }
             }
+        }
+
+        private static void DebugPrint(string msg)
+        {
+            if(_debugPrint) Console.WriteLine(msg);
         }
 
         private static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
