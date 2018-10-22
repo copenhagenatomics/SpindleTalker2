@@ -57,7 +57,7 @@ namespace SpindleTalker2
                         Console.WriteLine("DC voltage: " + value/10.0);
                         break;
                     case (byte)Status.ACV:
-                        Console.WriteLine("AC voltage: " + value);
+                        Console.WriteLine("AC voltage: " + value/10.0);
                         break;
                     case (byte)Status.Tmp:
                         Console.WriteLine("VFD temperature: " + value);

@@ -311,6 +311,9 @@ namespace VFDcontrol
             comPort.StopBits = VFDsettings.StopBits;
             comPort.Parity = VFDsettings.Parity;
             comPort.PortName = VFDsettings.PortName;
+            //comPort.Handshake = Handshake.None;  // default
+            //comPort.ReadTimeout = 2000;
+            //comPort.WriteTimeout = 2000;
 
             try
             {
@@ -408,25 +411,33 @@ namespace VFDcontrol
                             break;
                     }
 
-                    comPort.Write(dataToSend, 0, dataToSend.Length);
-                    if (isCommandPacket) PrintSendData(dataToSend);
-
-                    if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
+                    try
                     {
-                        // Wait for the expected number of bytes or timeout.
-                        int responseLoopTimeoutCount = 0;
-                        while (comPort.BytesToRead < _expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
+                        comPort.Write(dataToSend, 0, dataToSend.Length);
+                        if (isCommandPacket) PrintSendData(dataToSend);
+
+                        if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
                         {
-                            Thread.Sleep(10);
-                            responseLoopTimeoutCount++;
+                            // Wait for the expected number of bytes or timeout.
+                            int responseLoopTimeoutCount = 0;
+                            while (comPort.BytesToRead < _expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
+                            {
+                                Thread.Sleep(10);
+                                responseLoopTimeoutCount++;
+                            }
+
+                            if (comPort.BytesToRead < _expectedResponseLength) _expectedResponseLength = comPort.BytesToRead;
+
+                            dataReceived = new byte[_expectedResponseLength];
+                            comPort.Read(dataReceived, 0, _expectedResponseLength);
+                            if(dataReceived.Length > 0)
+                                ProcessReceivedPacket(dataReceived);
                         }
-
-                        if (comPort.BytesToRead < _expectedResponseLength) _expectedResponseLength = comPort.BytesToRead;
-
-                        dataReceived = new byte[_expectedResponseLength];
-                        comPort.Read(dataReceived, 0, _expectedResponseLength);
-                        if(dataReceived.Length > 0)
-                            ProcessReceivedPacket(dataReceived);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("VFD Read / Write error: " + ex.ToString());
+                        return; // exit. 
                     }
                 }
             }
