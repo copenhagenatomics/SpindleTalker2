@@ -24,9 +24,11 @@ namespace VFDcontrol
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
         private static bool _doNotPoll = true; // for debug testing purposes
         private static bool _debugPrint = false;
+        public static bool ComOpen { get; private set; }
 
         static Serial()
         {
+            ComOpen = false;
             populateCRCTable();
 
             new Thread(() => DoWork()).Start();
@@ -122,7 +124,9 @@ namespace VFDcontrol
 
         public static void Disconnect()
         {
+            _commandQueue.Clear();
             SendDataAsync(new byte[] { 0xff, 0xff, 0xff, 0xff, 0xff });
+            Thread.Sleep(100);
         }
 
         public static void StopPolling() { _spindleActive.Reset(); }
@@ -328,6 +332,7 @@ namespace VFDcontrol
 
             if (comPort.IsOpen)
             {
+                ComOpen = true;
                 Console.WriteLine($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}");
                 comPort.DataReceived += comPort_DataReceived;
                 VFDsettings.SerialConnected = true; // Report that the COM port has opened sucessfully
@@ -430,7 +435,7 @@ namespace VFDcontrol
 
                             dataReceived = new byte[_expectedResponseLength];
                             comPort.Read(dataReceived, 0, _expectedResponseLength);
-                            if(dataReceived.Length > 0)
+                            if(dataReceived.Length > 3)
                                 ProcessReceivedPacket(dataReceived);
                         }
                     }
@@ -441,6 +446,9 @@ namespace VFDcontrol
                     }
                 }
             }
+
+            comPort.Close();
+            ComOpen = false;
         }
 
         private static void DebugPrint(string msg)

@@ -302,7 +302,11 @@ namespace SpindleTalker2
                     else
                     {
                         Serial.Disconnect();
-                        Serial.InitialPollFinished();
+                        int i = 0;
+                        while(i++ < 100 && Serial.ComOpen)
+                        {
+                            Thread.Sleep(50);
+                        }
                         COMPortStatus(false);
                         toolStripStatusLabelVFDStatus.Text = "VFD did not respond";
                         toolStripStatusLabelVFDStatus.Image = Resources.redLED;
