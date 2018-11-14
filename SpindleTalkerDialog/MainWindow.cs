@@ -202,6 +202,8 @@ namespace SpindleTalker2
                     return;
                 }
             }
+            Serial.Disconnect();
+
             VFDsettings.Save();
         }
 
@@ -316,7 +318,6 @@ namespace SpindleTalker2
         }
 
         #endregion
-
     }
 
 }
