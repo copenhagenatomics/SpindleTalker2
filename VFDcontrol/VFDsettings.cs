@@ -53,7 +53,7 @@ namespace VFDcontrol
 
         public static int BaudRate
         {
-            get { return Convert.ToInt32(_settings.GetItemOrDefaultValue("BaudRate", 9600)); }
+            get { return Convert.ToInt32(_settings.GetItemOrDefaultValue("BaudRate", 38400)); }
             set { _settings.Settings["BaudRate"] = value.ToString(); }
         }
 

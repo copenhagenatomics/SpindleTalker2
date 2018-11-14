@@ -54,8 +54,8 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.ButtonSaveQuickSet = new System.Windows.Forms.Button();
             this.textBoxQuickset = new System.Windows.Forms.TextBox();
-            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.label3 = new System.Windows.Forms.Label();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.gbPortSettings.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown4)).BeginInit();
@@ -383,11 +383,11 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(10, 175);
+            this.label3.Location = new System.Drawing.Point(3, 171);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(373, 15);
             this.label3.TabIndex = 10;
-            this.label3.Text = "Default registers: PD001: 2, PD002: 2, PD163: 1, PD164: 1, PD165: 3";
+            this.label3.Text = "Default registers: PD001: 2, PD002: 2, PD163: 1, PD164: 3, PD165: 3";
             // 
             // SettingsControl
             // 
