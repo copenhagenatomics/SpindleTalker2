@@ -54,8 +54,10 @@ namespace SpindleTalker2
             }
 
             settingsForm.InitializeControlValues();
+            this.Width = 1500;
+            this.Height = 700;
 
-            if(SerialPort.GetPortNames().Length == 0)
+            if (SerialPort.GetPortNames().Length == 0)
             {
                 this.Show();
                 MessageBox.Show(this, "There are no COM Ports detected on this computer.\nPlease install a COM Port and restart this app.", "No COM Ports Installed", MessageBoxButtons.OK, MessageBoxIcon.Error);

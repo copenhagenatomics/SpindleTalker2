@@ -54,9 +54,11 @@ namespace SpindleTalker2
                         MeterAmps.Value = (double)((double)value / 10);
                         break;
                     case (byte)Status.DCV:
+                        MeterVDC.Value = (double)(value/10.0);
                         Console.WriteLine("DC voltage: " + value/10.0);
                         break;
                     case (byte)Status.ACV:
+                        MeterVAC.Value = (double)(value / 10.0);
                         Console.WriteLine("AC voltage: " + value/10.0);
                         break;
                     case (byte)Status.Tmp:
@@ -109,6 +111,8 @@ namespace SpindleTalker2
             MeterSetF.Value = -1;
             MeterOutF.Value = -1;
             MeterRPM.Value = -1;
+            MeterVDC.Value = -1;
+            MeterVAC.Value = -1;
         }
 
         public bool SpindleShuttingDown = false;
