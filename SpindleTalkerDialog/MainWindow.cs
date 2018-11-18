@@ -269,7 +269,7 @@ namespace SpindleTalker2
             {
                 timerInitialPoll.Stop();
                 Serial.InitialPollFinished();
-                VFDsettings.VFD_MaxRPM = (VFDsettings.VFD_MaxRPM / 50) * VFDsettings.VFD_MaxFreq;
+                // VFDsettings.VFD_MaxRPM = (VFDsettings.VFD_MaxRPM / 50) * VFDsettings.VFD_MaxFreq;
                 PopulateQuickSets();
                 toolStripStatusLabelVFDStatus.Text = "VFD Settings Downloaded";
                 toolStripStatusLabelVFDStatus.Image = Resources.greenLED;

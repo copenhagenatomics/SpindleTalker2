@@ -117,7 +117,7 @@
             this.MeterAmps.Location = new System.Drawing.Point(450, 3);
             this.MeterAmps.Name = "MeterAmps";
             this.MeterAmps.ScaleDivisions = 6;
-            this.MeterAmps.ScaleMaxValue = 8D;
+            this.MeterAmps.ScaleMaxValue = 20D;
             this.MeterAmps.ScaleMinValue = 0D;
             this.MeterAmps.ScaleSubDivisions = 3;
             this.MeterAmps.Size = new System.Drawing.Size(140, 208);
@@ -128,7 +128,7 @@
             // 
             // MeterVDC
             // 
-            this.MeterVDC.Colour = System.Drawing.Color.DarkGreen;
+            this.MeterVDC.Colour = System.Drawing.Color.DarkMagenta;
             this.MeterVDC.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MeterVDC.Location = new System.Drawing.Point(600, 3);
             this.MeterVDC.Name = "MeterVDC";
@@ -138,8 +138,8 @@
             this.MeterVDC.ScaleSubDivisions = 3;
             this.MeterVDC.Size = new System.Drawing.Size(140, 208);
             this.MeterVDC.TabIndex = 11;
-            this.MeterVDC.Title = "VDC";
-            this.MeterVDC.Units = "Volt";
+            this.MeterVDC.Title = "Input Volt DC";
+            this.MeterVDC.Units = "V";
             this.MeterVDC.Value = 0D;
             // 
             // MeterVAC
@@ -154,8 +154,8 @@
             this.MeterVAC.ScaleSubDivisions = 3;
             this.MeterVAC.Size = new System.Drawing.Size(140, 208);
             this.MeterVAC.TabIndex = 12;
-            this.MeterVAC.Title = "VAC";
-            this.MeterVAC.Units = "Volt";
+            this.MeterVAC.Title = "Output Volt AC";
+            this.MeterVAC.Units = "V";
             this.MeterVAC.Value = 0D;
             // 
             // MeterControl

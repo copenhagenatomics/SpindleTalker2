@@ -39,7 +39,7 @@ PD001 = 2 (set communication port as source of run commands)
 PD002 = 2 (set communication port as source of operating frequency)
 PD023 = 1 (enable run-backwards, only needed if you want the option to run either direction)
 PD163 = 1 (slave address 1)
-PD164 = 1 (baud rate 9600 bps)
+PD164 = 3 (baud rate 38400 bps)
 PD165 = 3 (8N1 for RTU mode)
 ```
 The settings below this are spindle/locale specific. I have a 1.5KW two pole, air-cooled spindle rated to 24,000 RPM @ 400Hz and with a minimum frequency requirement of 100Hz to enable cooling. It is important to make sure you have the right settings for your spindle.
@@ -57,6 +57,8 @@ PD143 = 2 (specific to my 1.5 KW spindle: number of poles - 2)
 PD144 = 3000 (PD144 is the speed in RPM that your spindle will run when the output frequency is 50Hz)
 ```
 When my application connects to the VFD initially it queries PD005, PD011 and PD144 to obtain the maximum supported frequency, the minimum supported frequency and what RPM 50Hz equates to respectively. It then uses these figures to calculate the maximum and minimum RPM and will not send commands to exceed these. Therefore it is important that these are set correctly.
+
+You can find more information about how to (setup the VFD http://www.halfbakedmaker.org/?category=CNC+Router) here, from Robert C Baruch. 
 
 I've also left as much of the RS485 protocol command stack exposed as is practical to assist anyone else trying to develop their own software.
 
