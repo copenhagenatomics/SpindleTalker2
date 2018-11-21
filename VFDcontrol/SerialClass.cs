@@ -20,7 +20,6 @@ namespace VFDcontrol
         private static ManualResetEvent _spindleActive = new ManualResetEvent(true);
         private static ManualResetEvent _dataReadyToRead = new ManualResetEvent(true);
         private static int responseWaitTimeout = 100; // in milliseconds
-        private static int _expectedResponseLength = 0;
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
         private static bool _doNotPoll = true; // for debug testing purposes
         private static bool _debugPrint = true;
@@ -351,8 +350,7 @@ namespace VFDcontrol
             statusRequestPacket[3] = (byte)ModbusRegisters.SetFreq; // Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
             statusRequestPacket[4] = 0x00; // Padding
             statusRequestPacket[5] = 0x00; // Padding
-
-
+            bool isCommandPacket;
 
             while (_spindleActive.WaitOne())
             {
@@ -360,31 +358,7 @@ namespace VFDcontrol
                 //      [xx]   |     [xx]     |      [xx]      | [xx] [xx] [..] | [xx][xx]
                 //    Slave ID | Command Type | Request Length |     Request    |   CRC   
                 //
-
-                byte[] dataToSend = null;
-                byte[] dataReceived = null;
-                bool isCommandPacket = false;
-
-                lock (_commandQueue)
-                {
-                    if (_commandQueue.Count > 0)
-                    {
-                        dataToSend = _commandQueue.Dequeue();
-                        isCommandPacket = true;
-                    }
-                    else
-                    {
-                        if (!_doNotPoll)
-                        {
-                            // If there is no command in the queue, use the time for polling
-                            if (statusRequestPacket[3] < 0x07) statusRequestPacket[3] += 1;
-                            else statusRequestPacket[3] = 0x00;
-
-                            dataToSend = crc16byte(statusRequestPacket);
-                        }
-                    }
-                }
-
+                var dataToSend = GetData(statusRequestPacket, out isCommandPacket);
                 if (dataToSend != null)
                 {
                     if (dataToSend[0] == 0xff)
@@ -403,25 +377,6 @@ namespace VFDcontrol
                         }
                     }
 
-                    switch (dataToSend[1])
-                    {
-                        case 0x01:
-                            _expectedResponseLength = 8;
-                            break;
-                        case 0x02:
-                            _expectedResponseLength = 8;
-                            break;
-                        case 0x03:
-                            _expectedResponseLength = 6;
-                            break;
-                        case 0x04:
-                            _expectedResponseLength = 8;
-                            break;
-                        case 0x05:
-                            _expectedResponseLength = 7;
-                            break;
-                    }
-
                     try
                     {
                         comPort.Write(dataToSend, 0, dataToSend.Length);
@@ -432,19 +387,8 @@ namespace VFDcontrol
 
                         if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
                         {
-                            // Wait for the expected number of bytes or timeout.
-                            int responseLoopTimeoutCount = 0;
-                            while (comPort.BytesToRead < _expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
-                            {
-                                Thread.Sleep(10);
-                                responseLoopTimeoutCount++;
-                            }
-
-                            if (comPort.BytesToRead < _expectedResponseLength) _expectedResponseLength = comPort.BytesToRead;
-
-                            dataReceived = new byte[_expectedResponseLength];
-                            comPort.Read(dataReceived, 0, _expectedResponseLength);
-                            if(dataReceived.Length > 3)
+                            var dataReceived = ReadData(comPort, GetResponseLength(dataToSend[1]));
+                            if (dataReceived.Length > 3)
                                 ProcessReceivedPacket(dataReceived);
                         }
                     }
@@ -458,6 +402,60 @@ namespace VFDcontrol
 
             comPort.Close();
             ComOpen = false;
+        }
+
+        private static byte[] GetData(byte[] statusRequestPacket, out bool isCommandPacket)
+        {
+            lock (_commandQueue)
+            {
+                isCommandPacket = false;
+                byte[] dataToSend = null;
+                if (_commandQueue.Count > 0)
+                {
+                    dataToSend = _commandQueue.Dequeue();
+                    isCommandPacket = true;
+                }
+                else
+                {
+                    if (!_doNotPoll)
+                    {
+                        // If there is no command in the queue, use the time for polling
+                        if (statusRequestPacket[3] < 0x07) statusRequestPacket[3] += 1;
+                        else statusRequestPacket[3] = 0x00;
+
+                        dataToSend = crc16byte(statusRequestPacket);
+                    }
+                }
+                return dataToSend;
+            }
+        }
+
+        private static byte[] ReadData(SerialPort comPort, int expectedResponseLength)
+        {
+            byte[] dataReceived;
+            // Wait for the expected number of bytes or timeout.
+            int responseLoopTimeoutCount = 0;
+            while (comPort.BytesToRead < expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
+            {
+                Thread.Sleep(10);
+                responseLoopTimeoutCount++;
+            }
+
+            if (comPort.BytesToRead < expectedResponseLength) expectedResponseLength = comPort.BytesToRead;
+
+            dataReceived = new byte[expectedResponseLength];
+            comPort.Read(dataReceived, 0, expectedResponseLength);
+            return dataReceived;
+        }
+
+        private static int GetResponseLength(byte secondByte)
+        {
+            switch (secondByte)
+            {
+                case 0x03: return 6;
+                case 0x05: return 7;
+                default: return 8;
+            }
         }
 
         private static void DebugPrint(string msg)

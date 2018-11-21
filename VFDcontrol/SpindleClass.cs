@@ -56,7 +56,7 @@ namespace VFDcontrol
             //   Calculate the frequency that equates to the target RPM by working out the target RPM as
             //   a fraction of the max RPM and then multiplying that by the max Frequency.
             //
-            int targetFrequency = (int)(((double)targetRPM / (double)VFDsettings.VFD_MaxRPM) * (double)VFDsettings.VFD_MaxFreq);
+            int targetFrequency = (int)(((double)targetRPM / VFDsettings.VFD_MaxRPM) * VFDsettings.VFD_MaxFreq);
             SetFrequency(targetFrequency);
         }
 
