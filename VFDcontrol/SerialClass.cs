@@ -23,7 +23,7 @@ namespace VFDcontrol
         private static int _expectedResponseLength = 0;
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
         private static bool _doNotPoll = true; // for debug testing purposes
-        private static bool _debugPrint = false;
+        private static bool _debugPrint = true;
         public static bool ComOpen { get; private set; }
 
         static Serial()
@@ -47,6 +47,12 @@ namespace VFDcontrol
         public static void Connect(bool debug = false)
         {
             _debugPrint = debug;
+
+            if(!ComOpen)
+            {
+                new Thread(() => DoWork()).Start();
+            }
+
             _spindleActive.Reset();   
             InitialPoll();
         }
@@ -365,7 +371,6 @@ namespace VFDcontrol
                     {
                         dataToSend = _commandQueue.Dequeue();
                         isCommandPacket = true;
-                        Debug.Print($"{DateTime.Now.ToString("H:mm:ss.fff")} - Send data!");
                     }
                     else
                     {
@@ -389,6 +394,7 @@ namespace VFDcontrol
                             case 0xff:
                                 comPort.Close();
                                 VFDsettings.SerialConnected = false;
+                                ComOpen = false;
                                 return;
                             case 0x01:
                                 statusRequestPacket[3] = 0x01;
@@ -419,7 +425,10 @@ namespace VFDcontrol
                     try
                     {
                         comPort.Write(dataToSend, 0, dataToSend.Length);
-                        if (isCommandPacket) PrintSendData(dataToSend);
+                        if (isCommandPacket)
+                        {
+                            PrintSendData(dataToSend);
+                        }
 
                         if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
                         {

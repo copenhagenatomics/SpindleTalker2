@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -15,7 +14,7 @@ namespace VFDcontrol
         public int ID { get; private set; }
         public string Value { get; set; }
 
-        public static string Header(char seperator) { return $"{QT}ID{QT}{seperator}{QT}Type{QT}{seperator}{QT}Description{QT}{seperator}{QT}Value{QT}{seperator}{QT}Unit{QT}{seperator}{QT}DefaultValue{QT}";  }
+        public static string Header(char seperator) { return $"{QT}ID{QT}{seperator}{QT}Value{QT}{seperator}{QT}DefaultValue{QT}{seperator}{QT}Type{QT}{seperator}{QT}Description{QT}{seperator}{QT}Unit{QT}";  }
         public static int ColumnCount { get { return 6; } }
         public RegisterValue(string id)
         {
@@ -34,7 +33,7 @@ namespace VFDcontrol
 
         public string ToString(char seperator)
         {
-            return $"{ID}{seperator}{Type}{seperator}{QT}{Description}{QT}{seperator}{Value}{seperator}{Unit}{seperator}{DefaultValue}";
+            return $"{ID}{seperator}{Value}{seperator}{DefaultValue}{seperator}{Type}{seperator}{QT}{Description}{QT}{seperator}{Unit}";
         }
 
 
@@ -250,7 +249,7 @@ namespace VFDcontrol
                 {
                     try
                     {
-                        Serial.SendCommand((byte)VFDcontrol.CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
+                        Serial.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
                         Thread.Sleep(10);
                     }
                     catch (Exception ex)
@@ -272,7 +271,7 @@ namespace VFDcontrol
             {
                 try
                 {
-                    var result = Serial.SendCommand((byte)VFDcontrol.CommandType.FunctionRead, 1, (byte)i, 0, 0);
+                    var result = Serial.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
                     if (result != null)
                         lines.Add(result.ToString(seperator));
                 }

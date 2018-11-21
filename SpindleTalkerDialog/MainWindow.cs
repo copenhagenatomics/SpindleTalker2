@@ -166,6 +166,7 @@ namespace SpindleTalker2
             buttonStart.Enabled = true;
             buttonStop.Enabled = false;
             groupBoxSpindleSpeed.Enabled = false;
+            gTrackBarSpindleSpeed.Value = 0;
             ChangeGtrackbarColours(false);
             groupBoxQuickSets.Enabled = false;
         }
@@ -211,13 +212,20 @@ namespace SpindleTalker2
 
         public void COMPortStatus(bool connected)
         {
-            toolStripStatusLabelComPort.Image = (connected ? Resources.greenLED : Resources.redLED);
-            toolStripStatusLabelComPort.Text = VFDsettings.PortName + (connected ? " (connected)" : " (disconnected)");
-            toolStripStatusLabelVFDStatus.Image = Resources.orangeLED;
-            toolStripStatusLabelVFDStatus.Text = (connected ? "VFD polling" : "VFD Disconnected");
-            buttonConnect.Image = (connected ? Resources.connect2 : Resources.disconnect2);
-            string status = (connected ? "opened" : "closed");
-            Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, VFDsettings.PortName, status));
+            if (this.InvokeRequired)
+            {
+                try { this.Invoke(new Action(() => COMPortStatus(connected))); } catch { }
+            }
+            else
+            {
+                toolStripStatusLabelComPort.Image = (connected ? Resources.greenLED : Resources.redLED);
+                toolStripStatusLabelComPort.Text = VFDsettings.PortName + (connected ? " (connected)" : " (disconnected)");
+                toolStripStatusLabelVFDStatus.Image = Resources.orangeLED;
+                toolStripStatusLabelVFDStatus.Text = (connected ? "VFD polling" : "VFD Disconnected");
+                buttonConnect.Image = (connected ? Resources.connect2 : Resources.disconnect2);
+                string status = (connected ? "opened" : "closed");
+                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, VFDsettings.PortName, status));
+            }
         }
 
         private void gTrackBarSpindleSpeed_ValueChanged(object sender, EventArgs e)

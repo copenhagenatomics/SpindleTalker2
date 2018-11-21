@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Ports;
+using System.Linq;
 using VFDcontrol.Settings4Net;
 
 namespace VFDcontrol
@@ -47,7 +49,12 @@ namespace VFDcontrol
 
         public static string PortName
         {
-            get { return _settings.GetItemOrDefaultValue("PortName", "COM1").ToString(); }
+            get
+            {
+                var list = OrderedPortNames();
+                var port = _settings.GetItemOrDefaultValue("PortName", list.First()).ToString();
+                return list.Contains(port) ? port : list.First();
+            }
             set { _settings.Settings["PortName"] = value; }
         }
 
@@ -77,7 +84,7 @@ namespace VFDcontrol
 
         public static bool AutoConnectAtStartup
         {
-            get { return Convert.ToBoolean(_settings.GetItemOrDefaultValue("AutoConnectAtStartup", false)); }
+            get { return Convert.ToBoolean(_settings.GetItemOrDefaultValue("AutoConnectAtStartup", true)); }
             set { _settings.Settings["AutoConnectAtStartup"] = value.ToString(); }
         }
 
@@ -248,6 +255,15 @@ namespace VFDcontrol
             VFD_MaxFreq = -1;
             VFD_MinFreq = -1;
             VFD_MaxRPM = -1;
+        }
+
+        public static List<string> OrderedPortNames()
+        {
+            // Just a placeholder for a successful parsing of a string to an integer
+            int num;
+
+            // Order the serial port names in numberic order (if possible)
+            return SerialPort.GetPortNames().OrderBy(a => a.Length > 3 && int.TryParse(a.Substring(3), out num) ? num : 0).ToList();
         }
     }
 }

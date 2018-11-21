@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 
 namespace VFDcontrol
 {
@@ -42,8 +41,8 @@ namespace VFDcontrol
         {
             Serial.SendDataAsync(stopSpindle);
             OnSpindleShuttingDown?.Invoke(true);
-            Thread.Sleep(5000);  // wait 5 secs to allow time for the motor to stop
-            Serial.StopPolling();
+            Thread.Yield();
+            SetRPM(0);
         }
 
         public static void SetRPM(int targetRPM)
