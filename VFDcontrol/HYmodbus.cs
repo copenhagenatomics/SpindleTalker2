@@ -130,18 +130,18 @@ namespace VFDcontrol
             return SendCommand((byte)commandType, 3, register, (byte)(value & 0xFF), (byte)(value >> 8));
         }
 
-        public static RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, byte _data0, byte _data1, byte _data2)
+        public static RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, int register, byte _data1, byte _data2)
         {
             int packetLength = selectedCommandLength + 3;
             byte[] command = new byte[packetLength];
             command[0] = (byte)VFDsettings.VFD_ModBusID;
             command[1] = selectedCommandType;
             command[2] = selectedCommandLength;
-            command[3] = _data0;
+            command[3] = (byte)register;
             if (packetLength > 4) command[4] = _data1;
             if (packetLength > 5) command[5] = _data2;
 
-            return new RegisterValue(_data0)
+            return new RegisterValue(register)
             {
                 Value = SendData(command).ToString()
             };
@@ -205,7 +205,7 @@ namespace VFDcontrol
             if (receivedPacket[1] == (byte)CommandType.ReadControlData && receivedPacket[2] == (byte)CommandLength.ThreeBytes)
             {
                 ProcessControlData(receivedValue, receivedPacket[3]);
-                Debug.Print(VFDData.GetControlDataString());
+               //  Debug.Print(VFDData.GetControlDataString());
                 OnProcessPollPacket?.Invoke(VFDData);
             }
             else if(receivedPacket[1] == (byte)CommandType.FunctionRead || receivedPacket[1] == (byte)CommandType.FunctionWrite)
@@ -345,7 +345,7 @@ namespace VFDcontrol
                 {
                     return _commandQueue.Dequeue();
                 }
-                else // If there is no command in the queue, use the time for polling
+                else if(!DownloadUploadMode) // If there is no command in the queue, use the time for polling
                 {
                     
                     // loop through the registers and poll one at a time. 
@@ -354,6 +354,8 @@ namespace VFDcontrol
 
                     return crc16byte(statusRequestPacket);
                 }
+
+                return null;
             }
         }
 

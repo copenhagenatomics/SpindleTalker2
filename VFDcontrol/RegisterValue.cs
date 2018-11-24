@@ -17,9 +17,9 @@ namespace VFDcontrol
 
         public static string Header(char seperator) { return $"{QT}ID{QT}{seperator}{QT}Value{QT}{seperator}{QT}DefaultValue{QT}{seperator}{QT}Type{QT}{seperator}{QT}Description{QT}{seperator}{QT}Unit{QT}";  }
         public static int ColumnCount { get { return 6; } }
-        public RegisterValue(string id)
+        public RegisterValue(int id)
         {
-            ID = int.Parse(id);
+            ID = id;
         }
 
         public RegisterValue(byte id)
@@ -38,9 +38,8 @@ namespace VFDcontrol
         }
 
 
-        public byte data0 { get { return ToByte(0); } }
-        public byte data1 { get { return ToByte(8); } }
-        public byte data2 { get { return ToByte(16); } }
+        public byte data0 { get { return ToByte(8); } }
+        public byte data1 { get { return ToByte(0); } }
 
         private byte ToByte(int shift)
         {
@@ -48,9 +47,9 @@ namespace VFDcontrol
             {
                 case "byte": return byte.Parse(Value);
                 case "int": return (byte)(int.Parse(Value) >> shift);
-                case "intX10": return (byte)(((byte)(int.Parse(Value) * 10.0)) >> shift);
-                case "intX100": return (byte)(((byte)(int.Parse(Value) * 100.0)) >> shift);
-                case "intX1000": return (byte)(((byte)(int.Parse(Value) * 1000.0)) >> shift);
+                case "intX10": return (byte)((int)(double.Parse(Value, CultureInfo.InvariantCulture) * 10.0) >> shift);
+                case "intX100": return (byte)((int)(double.Parse(Value, CultureInfo.InvariantCulture) * 100.0) >> shift);
+                case "intX1000": return (byte)((int)(double.Parse(Value, CultureInfo.InvariantCulture) * 1000.0) >> shift);
                 case "char": return (byte)Value[0];
                 default: return 0;
             }
@@ -84,12 +83,21 @@ namespace VFDcontrol
                     case 9: return "intX10";
                     case 10: return "intX10";
                     case 11: return "intX100";
+                    case 14: return "int";
+                    case 15: return "int";
+                    case 16: return "int";
+                    case 17: return "int";
+                    case 18: return "int";
+                    case 19: return "int";
+                    case 20: return "int";
+                    case 21: return "int";
                     case 27: return "intX100";
                     case 28: return "intX100";
                     case 29: return "intX10";
                     case 30: return "intX10";
                     case 31: return "intX10";
                     case 32: return "intX10";
+                    case 33: return "int";
                     case 34: return "intX10";
                     case 42: return "intX100";
                     case 59: return "intX100";
@@ -118,6 +126,7 @@ namespace VFDcontrol
                     case 138: return "intX100";
                     case 141: return "intX10";
                     case 142: return "intX10";
+                    case 144: return "int";
                     case 145: return "intX10";
                     case 152: return "intX10";
                     case 154: return "intX10";
@@ -125,6 +134,8 @@ namespace VFDcontrol
                     case 157: return "intX10";
                     case 173: return "intX10";
                     case 174: return "intX10";
+                    case 182: return "int";
+                    case 183: return "int";
                     default: return "byte";
                 }
             }
@@ -295,8 +306,9 @@ namespace VFDcontrol
                 {
                     try
                     {
-                        var result = HYmodbus.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
-                        Debug.Print(result.ToString());
+                        Debug.Print(line.ToString());
+                        var result = HYmodbus.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.ID, line.data0, line.data1);
+                        // Debug.Print(result.ToString());
                     }
                     catch (Exception ex)
                     {
@@ -682,7 +694,7 @@ namespace VFDcontrol
                 {
                     case 0: 
                     case 1: 
-                    case 2: return 1;
+                    case 2: return 2;
                     case 3:
                     case 4:
                     case 5:
@@ -698,7 +710,7 @@ namespace VFDcontrol
                     case 23:
                     case 24:
                     case 25:
-                    case 26: return 1;
+                    case 26: return 2;
                     case 27:
                     case 28: return 3;
                     case 29:
@@ -708,7 +720,7 @@ namespace VFDcontrol
                     case 33:
                     case 34:
                     case 35:
-                    case 41: return 1;
+                    case 41: return 2;
                     case 42: return 2;
                     case 43: return 2;
                     case 44:
@@ -721,7 +733,7 @@ namespace VFDcontrol
                     case 51:
                     case 52:
                     case 53:
-                    case 54: return 1;
+                    case 54: return 2;
                     case 55:
                     case 56:
                     case 57:
@@ -730,15 +742,15 @@ namespace VFDcontrol
                     case 60:
                     case 61:
                     case 62: return 3;
-                    case 63: return 1;
-                    case 64: return 1;
+                    case 63: return 2;
+                    case 64: return 2;
                     case 65: return 2;
                     case 66: return 2;
                     case 67:
                     case 68:
                     case 69:
                     case 70:
-                    case 71: return 1;
+                    case 71: return 2;
                     case 72:
                     case 73: return 3;
                     case 74:
@@ -750,7 +762,7 @@ namespace VFDcontrol
                     case 80:
                     case 81:
                     case 82:
-                    case 83: return 1;
+                    case 83: return 2;
                     case 84:
                     case 85: return 2;
                     case 86:
@@ -776,7 +788,7 @@ namespace VFDcontrol
                     case 106:
                     case 107:
                     case 108:return 2;
-                    default: return 1;
+                    default: return 2;
                 }
 
                 throw new NotImplementedException();
@@ -953,7 +965,7 @@ namespace VFDcontrol
         public static List<RegisterValue> LoadCsv(string filename, char seperator = ',')
         {
             var lines = File.ReadAllLines(filename).ToList();
-            if (lines[0] == Header(seperator))
+            if (lines[0] == Header(seperator) || lines[0] == Header(seperator).Replace("\"", ""))
             {
                 var result = new List<RegisterValue>();
                 foreach (var line in lines.Skip(1))
@@ -965,7 +977,7 @@ namespace VFDcontrol
                         return null;
                     }
 
-                    var item = new RegisterValue(row[0]);
+                    var item = new RegisterValue(int.Parse(row[0]));
                     item.Value = row[1];
                     if (item.Type != row[3]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Type} <> {row[3]}");
                     if (item.Unit != row[5]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Unit} <> {row[5]}");

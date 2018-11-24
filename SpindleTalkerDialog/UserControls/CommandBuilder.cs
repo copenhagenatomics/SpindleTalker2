@@ -103,12 +103,19 @@ namespace SpindleTalker2.UserControls
             dialog.Filter = "csv file |*.csv";
             if(dialog.ShowDialog() == DialogResult.OK)
             {
-                if(RegisterValue.Upload(dialog.FileName, _settingsForm.csvSeperator))
-                { 
-                    MessageBox.Show("Finished uploading all values to VFD");
-                }
+                try
+                {
+                    if(RegisterValue.Upload(dialog.FileName, _settingsForm.csvSeperator))
+                    { 
+                        MessageBox.Show("Finished uploading all values to VFD");
+                    }
 
-                HYmodbus.StartPolling();
+                    HYmodbus.StartPolling();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
             }
         }
     }
