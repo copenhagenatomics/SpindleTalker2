@@ -396,7 +396,7 @@ namespace VFDcontrol
                     VFDData.OutFrequency = rawValue / 100.0;
                     return;
                 case (byte)ControlDataType.RoTT:
-                    VFDData.OutRPM = rawValue * VFDData.NumberOfMotorPols;
+                    VFDData.OutRPM = rawValue;
                     return;
                 case (byte)ControlDataType.OutA:
                     VFDData.OutAmp = rawValue / 10.0;

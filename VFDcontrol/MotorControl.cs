@@ -70,7 +70,7 @@ namespace VFDcontrol
             if (targetFrequency < HYmodbus.VFDData.MinFreq) targetFrequency = HYmodbus.VFDData.MinFreq;
             else if (targetFrequency > HYmodbus.VFDData.MaxFreq) targetFrequency = HYmodbus.VFDData.MaxFreq;
 
-            int frequency = (int)targetFrequency * 100 / HYmodbus.VFDData.NumberOfMotorPols; // VFD expects target frequency in hundredths of Hertz
+            int frequency = (int)targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz
 
             OnSpindleShuttingDown?.Invoke(false); // Ensure the SetF graph draws properly/
 
