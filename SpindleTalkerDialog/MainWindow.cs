@@ -155,7 +155,7 @@ namespace SpindleTalker2
 
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            Spindle.Start((checkBoxReverse.Checked ? SpindleDirection.Backwards : SpindleDirection.Forward));
+            MotorControl.Start((checkBoxReverse.Checked ? SpindleDirection.Backwards : SpindleDirection.Forward));
             buttonStart.Enabled = false;
             buttonStop.Enabled = true;
             groupBoxSpindleSpeed.Enabled = true;
@@ -166,7 +166,7 @@ namespace SpindleTalker2
 
         private void buttonStop_Click(object sender, EventArgs e)
         {
-            Spindle.Stop();
+            MotorControl.Stop();
             buttonStart.Enabled = true;
             buttonStop.Enabled = false;
             groupBoxSpindleSpeed.Enabled = false;
@@ -235,7 +235,7 @@ namespace SpindleTalker2
         private void gTrackBarSpindleSpeed_ValueChanged(object sender, EventArgs e)
         {
             if (gTrackBarSpindleSpeed.Value < HYmodbus.VFDData.MinRPM) gTrackBarSpindleSpeed.Value = HYmodbus.VFDData.MinRPM;
-            Spindle.SetRPM(gTrackBarSpindleSpeed.Value);
+            MotorControl.SetRPM(gTrackBarSpindleSpeed.Value);
         }
 
         // I like this open source trackbar control but it doesn't implement being greyed out when disabled 
@@ -281,7 +281,6 @@ namespace SpindleTalker2
             {
                 timerInitialPoll.Stop();
                 HYmodbus.StartPolling();
-                HYmodbus.VFDData.MaxRPM = (int)(HYmodbus.VFDData.MaxRPM * HYmodbus.VFDData.MaxFreq / 50.0);
                 PopulateQuickSets();
                 toolStripStatusLabelVFDStatus.Text = "VFD Settings Downloaded";
                 toolStripStatusLabelVFDStatus.Image = Resources.greenLED;
@@ -303,7 +302,6 @@ namespace SpindleTalker2
             }
             else
             {
-                HYmodbus.InitialPoll();
                 if (stopWatchInitialPoll.ElapsedMilliseconds > howLongToWait)
                 {
                     timerInitialPoll.Stop();

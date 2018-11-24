@@ -125,17 +125,6 @@ namespace VFDcontrol
             _spindleActive.Set();
         }
 
-        public static byte[] CRCSign(byte[] byteArrayToSign) { return crc16byte(byteArrayToSign); }
-
-        public static bool CRCCheck(byte[] byteArrayToCheck)
-        {
-            var rawMessage = new byte[byteArrayToCheck.Length - 2];
-            Buffer.BlockCopy(byteArrayToCheck, 0, rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
-
-            bool validCRC = byteArrayToCheck.SequenceEqual(CRCSign(rawMessage));
-            return validCRC;
-        }
-
         public static RegisterValue SendCommand(CommandType commandType, byte register, int value)
         {
             return SendCommand((byte)commandType, 3, register, (byte)(value & 0xFF), (byte)(value >> 8));
@@ -337,6 +326,17 @@ namespace VFDcontrol
             ComOpen = false;
         }
 
+        private static byte[] CRCSign(byte[] byteArrayToSign) { return crc16byte(byteArrayToSign); }
+
+        private static bool CRCCheck(byte[] byteArrayToCheck)
+        {
+            var rawMessage = new byte[byteArrayToCheck.Length - 2];
+            Buffer.BlockCopy(byteArrayToCheck, 0, rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
+
+            bool validCRC = byteArrayToCheck.SequenceEqual(CRCSign(rawMessage));
+            return validCRC;
+        }
+
         private static byte[] GetData(byte[] statusRequestPacket)
         {
             lock (_commandQueue)
@@ -396,7 +396,7 @@ namespace VFDcontrol
                     VFDData.OutFrequency = rawValue / 100.0;
                     return;
                 case (byte)ControlDataType.RoTT:
-                    VFDData.OutRPM = rawValue;
+                    VFDData.OutRPM = rawValue * VFDData.NumberOfMotorPols;
                     return;
                 case (byte)ControlDataType.OutA:
                     VFDData.OutAmp = rawValue / 10.0;
@@ -426,7 +426,9 @@ namespace VFDcontrol
                     PrintReceivedData("Minimum Frequency (Hz)", VFDData.MinFreq);
                     return;
                 case (byte)ModbusRegisters.MaxRPM:
-                    VFDData.MaxRPM = rawValue;
+                    VFDData.RatedMotorRPM = rawValue;
+                    VFDData.MaxRPM = (int)(VFDData.RatedMotorRPM * VFDData.MaxFreq / 50.0); // adjust motor value to what is possible with current VFD settings. 
+                    PrintReceivedData("Motor rated RPM (@50 Hz)", VFDData.RatedMotorRPM); 
                     PrintReceivedData("Maximum RPM", VFDData.MaxRPM);
                     return;
                 case (byte)ModbusRegisters.IntermediateFreq:

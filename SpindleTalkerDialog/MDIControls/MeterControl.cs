@@ -16,7 +16,7 @@ namespace SpindleTalker2
             _mainWindow = spindleTalkerBase;
             HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
             HYmodbus.VFDData.OnChanged += VFDdata_OnChanged;
-            Spindle.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
+            MotorControl.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
         }
 
         private void HYmodbus_ProcessPollPacket(VFDdata data)

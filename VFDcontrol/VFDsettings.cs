@@ -77,7 +77,7 @@ namespace VFDcontrol
 
         public static string QuickSets
         {
-            get { return _settings.GetItemOrDefaultValue("QuickSets", "50;100;500;1500;3000").ToString(); }
+            get { return _settings.GetItemOrDefaultValue("QuickSets", "100;200;500;1000;1500;3000").ToString(); }
             set { _settings.Settings["QuickSets"] = value; }
         }
 

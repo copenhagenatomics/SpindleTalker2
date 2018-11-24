@@ -2,7 +2,7 @@
 
 namespace VFDcontrol
 {
-    public static class Spindle
+    public static class MotorControl
     {
         public delegate void SpindleShuttingDown(bool stop);
         public static event SpindleShuttingDown OnSpindleShuttingDown;
@@ -56,11 +56,11 @@ namespace VFDcontrol
             //   Calculate the frequency that equates to the target RPM by working out the target RPM as
             //   a fraction of the max RPM and then multiplying that by the max Frequency.
             //
-            int targetFrequency = (int)(((double)targetRPM / HYmodbus.VFDData.MaxRPM) * HYmodbus.VFDData.MaxFreq);
+            double targetFrequency = (double)targetRPM / HYmodbus.VFDData.MaxRPM * HYmodbus.VFDData.MaxFreq;
             SetFrequency(targetFrequency);
         }
 
-        public static void SetFrequency(int targetFrequency)
+        public static void SetFrequency(double targetFrequency)
         {
             //
             //   Check that the target frequency does not exceed the maximum or minumum values for the VFD and/or
@@ -70,7 +70,7 @@ namespace VFDcontrol
             if (targetFrequency < HYmodbus.VFDData.MinFreq) targetFrequency = HYmodbus.VFDData.MinFreq;
             else if (targetFrequency > HYmodbus.VFDData.MaxFreq) targetFrequency = HYmodbus.VFDData.MaxFreq;
 
-            targetFrequency = targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz
+            int frequency = (int)targetFrequency * 100 / HYmodbus.VFDData.NumberOfMotorPols; // VFD expects target frequency in hundredths of Hertz
 
             OnSpindleShuttingDown?.Invoke(false); // Ensure the SetF graph draws properly/
 
@@ -79,8 +79,8 @@ namespace VFDcontrol
             controlPacket[0] = (byte)VFDsettings.VFD_ModBusID;
             controlPacket[1] = (byte)CommandType.WriteInverterFrequencyData;
             controlPacket[2] = (byte)CommandLength.TwoBytes;
-            controlPacket[3] = (byte)(targetFrequency >> 8); // Bitshift right to get bits nine to 16 of the int32 value
-            controlPacket[4] = (byte)targetFrequency; // returns the eight Least Significant Bits (LSB) of the int32 value
+            controlPacket[3] = (byte)(frequency >> 8); // Bitshift right to get bits nine to 16 of the int32 value
+            controlPacket[4] = (byte)frequency; // returns the eight Least Significant Bits (LSB) of the int32 value
 
             HYmodbus.SendDataAsync(controlPacket);
         }

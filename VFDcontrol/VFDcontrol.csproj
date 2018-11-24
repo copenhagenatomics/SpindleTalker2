@@ -53,7 +53,7 @@
     <Compile Include="Settings4Net\SettingsMetaData.cs" />
     <Compile Include="VFDdata.cs" />
     <Compile Include="VFDsettings.cs" />
-    <Compile Include="SpindleClass.cs" />
+    <Compile Include="MotorControl.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

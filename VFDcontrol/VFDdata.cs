@@ -67,7 +67,6 @@ namespace VFDcontrol
                 }
                 else return 0;
             }
-            set {; }
         }
 
         public  int IntermediateFreq
@@ -140,7 +139,18 @@ namespace VFDcontrol
         }
         private  double _RatedMotorCurrent;
 
-        public  int NumberOfMotorPols
+        public double RatedMotorRPM
+        {
+            get { return _RatedMotorRPM; }
+            set
+            {
+                _RatedMotorRPM = value;
+                OnChanged?.Invoke(this);
+            }
+        }
+        private double _RatedMotorRPM;
+
+        public int NumberOfMotorPols
         {
             get { return _NumberOfMotorPols; }
             set
