@@ -14,51 +14,30 @@ namespace SpindleTalker2
         {
             InitializeComponent();
             _mainWindow = spindleTalkerBase;
-            Serial.OnProcessPollPacket += Serial_ProcessPollPacket;
-            VFDsettings.OnMaxFreqChanged += VFDsettings_OnMaxFreqChanged;
-            VFDsettings.OnRpmChanged += VFDsettings_OnRpmChanged;
+            HYmodbus.OnProcessPollPacket += Serial_ProcessPollPacket;
+            HYmodbus.VFDData.OnMaxFreqChanged += VFDsettings_OnMaxFreqChanged;
+            HYmodbus.VFDData.OnRpmChanged += VFDsettings_OnRpmChanged;
             Spindle.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
         }
 
-        private void Serial_ProcessPollPacket(byte[] pollPacket)
+        private void Serial_ProcessPollPacket(VFDdata data)
         {
             if (this.InvokeRequired)
             {
-                try { this.Invoke(new Action(() => Serial_ProcessPollPacket(pollPacket))); } catch { }
+                try { this.Invoke(new Action(() => Serial_ProcessPollPacket(data))); } catch { }
             }
             else
             {
-                int value = Convert.ToInt32((pollPacket[4] << 8) + pollPacket[5]);
-                switch (pollPacket[3])
-                {
-                    case (byte)Status.SetF:
-                        MeterSetF.Value = (SpindleShuttingDown ? 0 : (double)(value / 100));
-                        break;
-                    case (byte)Status.OutF:
-                        MeterOutF.Value = (double)(value / 100);
-                        break;
-                    case (byte)Status.RoTT:
-                        MeterRPM.Value = (double)(value);
-                        Image toolstripImage = (value > 0 ? Resources.greenLED : Resources.redLED);
-                        string status = (value > 0 ? string.Format("Current RPM = {0:#,##0}", value) : "Spindle is stopped");
-                        _mainWindow.toolStripStatusRPM.Text = status;
-                        _mainWindow.toolStripStatusRPM.Image = toolstripImage;
-                        break;
-                    case (byte)Status.OutA:
-                        MeterAmps.Value = (double)((double)value / 10);
-                        break;
-                    case (byte)Status.DCV:
-                        MeterVDC.Value = (double)(value/10.0);
-                        Console.WriteLine("DC voltage: " + value/10.0);
-                        break;
-                    case (byte)Status.ACV:
-                        MeterVAC.Value = (double)(value / 10.0);
-                        Console.WriteLine("AC voltage: " + value/10.0);
-                        break;
-                    case (byte)Status.Tmp:
-                        Console.WriteLine("VFD temperature: " + value);
-                        break;
-                }
+                MeterSetF.Value = SpindleShuttingDown ? 0 : data.SetFrequency;
+                MeterOutF.Value = data.OutFrequency;
+                MeterRPM.Value = data.OutRPM;
+                Image toolstripImage = (data.OutRPM > 0 ? Resources.greenLED : Resources.redLED);
+                string status = (data.OutRPM > 0 ? string.Format("Current RPM = {0:#,##0}", data.OutRPM) : "Spindle is stopped");
+                _mainWindow.toolStripStatusRPM.Text = status;
+                _mainWindow.toolStripStatusRPM.Image = toolstripImage;
+                MeterAmps.Value = data.OutAmp;
+                MeterVDC.Value = data.OutVoltDC;
+                MeterVAC.Value = HYmodbus.VFDData.OutVoltAC;
             }
         }
 

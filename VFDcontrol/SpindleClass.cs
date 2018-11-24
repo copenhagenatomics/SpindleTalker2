@@ -9,7 +9,7 @@ namespace VFDcontrol
 
         #region Control packet definitions
 
-        static byte[] ReadCurrentSetF = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.ReadControlData, (byte)CommandLength.OneByte, (byte)Status.SetF };
+        static byte[] ReadCurrentSetF = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.ReadControlData, (byte)CommandLength.OneByte, (byte)ControlDataType.SetF };
         static byte[] RunForward = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Fwd };
         static byte[] RunBack = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Rev };
         static byte[] stopSpindle = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Stop };
@@ -28,18 +28,18 @@ namespace VFDcontrol
             //    spindles. The CRC is added as part of the SendData() method. 
             //
 
-            Serial.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
-            SetFrequency(VFDsettings.VFD_MinFreq); 
+            HYmodbus.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
+            SetFrequency(HYmodbus.VFDData.MinFreq); 
 
             // For future testing, the spindle reverse function doesn't appear to be working
-            Serial.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
+            HYmodbus.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
 
-            Serial.StartPolling();
+            HYmodbus.StartPolling();
         }
 
         public static void Stop()
         {
-            Serial.SendDataAsync(stopSpindle);
+            HYmodbus.SendDataAsync(stopSpindle);
             OnSpindleShuttingDown?.Invoke(true);
             Thread.Yield();
             SetRPM(0);
@@ -56,7 +56,7 @@ namespace VFDcontrol
             //   Calculate the frequency that equates to the target RPM by working out the target RPM as
             //   a fraction of the max RPM and then multiplying that by the max Frequency.
             //
-            int targetFrequency = (int)(((double)targetRPM / VFDsettings.VFD_MaxRPM) * VFDsettings.VFD_MaxFreq);
+            int targetFrequency = (int)(((double)targetRPM / HYmodbus.VFDData.MaxRPM) * HYmodbus.VFDData.MaxFreq);
             SetFrequency(targetFrequency);
         }
 
@@ -67,8 +67,8 @@ namespace VFDcontrol
             //   spindle. I assume that the VFD will ignore values above max (haven't tested) but values below the
             //   minumum recommended frequency for air-cooled spindles can cause major overheating issues.
             //
-            if (targetFrequency < VFDsettings.VFD_MinFreq) targetFrequency = VFDsettings.VFD_MinFreq;
-            else if (targetFrequency > VFDsettings.VFD_MaxFreq) targetFrequency = VFDsettings.VFD_MaxFreq;
+            if (targetFrequency < HYmodbus.VFDData.MinFreq) targetFrequency = HYmodbus.VFDData.MinFreq;
+            else if (targetFrequency > HYmodbus.VFDData.MaxFreq) targetFrequency = HYmodbus.VFDData.MaxFreq;
 
             targetFrequency = targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz
 
@@ -82,7 +82,7 @@ namespace VFDcontrol
             controlPacket[3] = (byte)(targetFrequency >> 8); // Bitshift right to get bits nine to 16 of the int32 value
             controlPacket[4] = (byte)targetFrequency; // returns the eight Least Significant Bits (LSB) of the int32 value
 
-            Serial.SendDataAsync(controlPacket);
+            HYmodbus.SendDataAsync(controlPacket);
         }
     }
 

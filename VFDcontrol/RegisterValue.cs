@@ -295,7 +295,7 @@ namespace VFDcontrol
                 {
                     try
                     {
-                        var result = Serial.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
+                        var result = HYmodbus.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
                         Debug.Print(result.ToString());
                     }
                     catch (Exception ex)
@@ -318,7 +318,7 @@ namespace VFDcontrol
             {
                 try
                 {
-                    var result = Serial.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
+                    var result = HYmodbus.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
                     if (result != null)
                     {
                         result.Value = result.ToValue();

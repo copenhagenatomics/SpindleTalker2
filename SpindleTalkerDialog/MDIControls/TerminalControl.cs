@@ -16,7 +16,7 @@ namespace SpindleTalker2
         {
             this.commandBuilder1 = new UserControls.CommandBuilder(this, settingsControl);
             InitializeComponent();
-            Serial.OnWriteTerminalForm += Serial_WriteTerminalForm;
+            HYmodbus.OnWriteTerminalForm += Serial_WriteTerminalForm;
         }
 
         private static bool IsValidHexString(IEnumerable<char> hexString)

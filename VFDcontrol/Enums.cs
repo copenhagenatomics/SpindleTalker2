@@ -19,7 +19,7 @@ namespace VFDcontrol
     }
 
     [Flags]
-    public enum Status
+    public enum ControlDataType
     {
         SetF = 0x00,
         OutF = 0x01,
@@ -67,11 +67,6 @@ namespace VFDcontrol
 
     public enum ModbusRegisters
     {
-        //Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
-        SetFreq = 0x00,
-        OutputFreq = 0x01,
-        OutputAmps = 0x02,
-        CurrentRPM = 0x03,
         MaxFreq = 0x05, //PD005
         IntermediateFreq = 0x06, //PD006
         MinimumFreq = 0x07, //PD007

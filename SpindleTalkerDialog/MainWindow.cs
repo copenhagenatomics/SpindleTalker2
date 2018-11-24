@@ -26,7 +26,7 @@ namespace SpindleTalker2
         public MainWindow()
         {
             InitializeComponent();
-            VFDsettings.OnSerialPortConnected += COMPortStatus;
+            HYmodbus.VFDData.OnSerialPortConnected += COMPortStatus;
         }
 
         private System.Diagnostics.Stopwatch stopWatchInitialPoll = new System.Diagnostics.Stopwatch();
@@ -68,7 +68,7 @@ namespace SpindleTalker2
 
             if (VFDsettings.AutoConnectAtStartup)
             {
-                Serial.Connect();
+                HYmodbus.Connect();
                 timerInitialPoll.Start();
                 stopWatchInitialPoll.Start();
             }
@@ -124,27 +124,27 @@ namespace SpindleTalker2
 
         private void buttonConnect_Click(object sender, EventArgs e)
         {
-            if (VFDsettings.SerialConnected)
+            if (HYmodbus.VFDData.SerialConnected)
             {
                 if(_meterControl.MeterRPM.Value > 0)
                     if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to disconnect?", 
                         "Spindle still running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
                             != System.Windows.Forms.DialogResult.Yes) return;
                 
-                Serial.Disconnect();
+                HYmodbus.Disconnect();
                 Thread.Sleep(500);
                 _meterControl.ZeroAll();
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxQuickSets.Enabled = false;
                 ChangeGtrackbarColours(false);
-                VFDsettings.ClearVFDSettings();
+                HYmodbus.VFDData.Clear();
                 toolStripStatusRPM.Text = "Current RPM Unknown (Not Connected)";
                 toolStripStatusRPM.Image = Resources.orangeLED;
             }
             else
             {
-                Serial.Connect();
+                HYmodbus.Connect();
                 stopWatchInitialPoll.Reset();
                 stopWatchInitialPoll.Start();
                 
@@ -209,7 +209,7 @@ namespace SpindleTalker2
                     return;
                 }
             }
-            Serial.Disconnect();
+            HYmodbus.Disconnect();
 
             VFDsettings.Save();
         }
@@ -234,7 +234,7 @@ namespace SpindleTalker2
 
         private void gTrackBarSpindleSpeed_ValueChanged(object sender, EventArgs e)
         {
-            if (gTrackBarSpindleSpeed.Value < VFDsettings.VFD_MinRPM) gTrackBarSpindleSpeed.Value = VFDsettings.VFD_MinRPM;
+            if (gTrackBarSpindleSpeed.Value < HYmodbus.VFDData.MinRPM) gTrackBarSpindleSpeed.Value = HYmodbus.VFDData.MinRPM;
             Spindle.SetRPM(gTrackBarSpindleSpeed.Value);
         }
 
@@ -277,11 +277,11 @@ namespace SpindleTalker2
 
         private void timerInitialPoll_Tick(object sender, EventArgs e)
         {
-            if (VFDsettings.VFD_MaxFreq > 0 && VFDsettings.VFD_MinFreq >= 0 && VFDsettings.VFD_MaxRPM > 0 && _meterControl.MeterRPM.Value >= 0)
+            if (HYmodbus.VFDData.MaxFreq > 0 && HYmodbus.VFDData.MinFreq >= 0 && HYmodbus.VFDData.MaxRPM > 0 && _meterControl.MeterRPM.Value >= 0)
             {
                 timerInitialPoll.Stop();
-                Serial.StartPolling();
-                VFDsettings.VFD_MaxRPM = (int)(VFDsettings.VFD_MaxRPM * VFDsettings.VFD_MaxFreq / 50.0);
+                HYmodbus.StartPolling();
+                HYmodbus.VFDData.MaxRPM = (int)(HYmodbus.VFDData.MaxRPM * HYmodbus.VFDData.MaxFreq / 50.0);
                 PopulateQuickSets();
                 toolStripStatusLabelVFDStatus.Text = "VFD Settings Downloaded";
                 toolStripStatusLabelVFDStatus.Image = Resources.greenLED;
@@ -303,7 +303,7 @@ namespace SpindleTalker2
             }
             else
             {
-                Serial.InitialPoll();
+                HYmodbus.InitialPoll();
                 if (stopWatchInitialPoll.ElapsedMilliseconds > howLongToWait)
                 {
                     timerInitialPoll.Stop();
@@ -317,9 +317,9 @@ namespace SpindleTalker2
                     }
                     else
                     {
-                        Serial.Disconnect();
+                        HYmodbus.Disconnect();
                         int i = 0;
-                        while(i++ < 100 && Serial.ComOpen)
+                        while(i++ < 100 && HYmodbus.ComOpen)
                         {
                             Thread.Sleep(50);
                         }

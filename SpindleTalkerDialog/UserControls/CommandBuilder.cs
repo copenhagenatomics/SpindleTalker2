@@ -39,7 +39,7 @@ namespace SpindleTalker2.UserControls
             VFDcontrol.CommandType selectedCommandType = (VFDcontrol.CommandType)Enum.Parse(typeof(VFDcontrol.CommandType), cbCommandType.SelectedItem.ToString());
             CommandLength selectedCommandLength = (CommandLength)Enum.Parse(typeof(CommandLength), cbCommandLength.SelectedItem.ToString());
 
-            Serial.SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
+            HYmodbus.SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
         }
 
 
@@ -89,7 +89,7 @@ namespace SpindleTalker2.UserControls
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 RegisterValue.Download(dialog.FileName, _settingsForm.csvSeperator);
-                Serial.StartPolling();
+                HYmodbus.StartPolling();
                 MessageBox.Show("Finished downloading all values to file");
             }
         }
@@ -108,7 +108,7 @@ namespace SpindleTalker2.UserControls
                     MessageBox.Show("Finished uploading all values to VFD");
                 }
 
-                Serial.StartPolling();
+                HYmodbus.StartPolling();
             }
         }
     }

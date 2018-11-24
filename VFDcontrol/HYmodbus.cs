@@ -9,27 +9,20 @@ using System.Windows.Forms;
 
 namespace VFDcontrol
 {
-    public enum SerialMode
-    {
-        init = 0, 
-        poll = 1, 
-        download = 2 
-    }
-
     // for more information see also:
     // https://github.com/bebro/linuxcnc-huanyang-vfd/blob/emc2/hy_modbus.c
-    public static class Serial
+    public static class HYmodbus
     {
         private static Queue<byte[]> _commandQueue = new Queue<byte[]>();
         private static Queue<int> _receivedQueue = new Queue<int>();
         private static ManualResetEvent _spindleActive = new ManualResetEvent(true);
         private static ManualResetEvent _dataReadyToRead = new ManualResetEvent(true);
         private static int responseWaitTimeout = 100; // in milliseconds
-        private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
-        private static SerialMode _mode;
+        public static bool DownloadUploadMode;
+        public static VFDdata VFDData = new VFDdata();
         public static bool ComOpen { get; private set; }
         
-        static Serial()
+        static HYmodbus()
         {
             ComOpen = false;
             populateCRCTable();
@@ -37,7 +30,7 @@ namespace VFDcontrol
             new Thread(() => DoWork()).Start();
         }
 
-        public delegate void ProcessPollPacket(byte[] pollPacket);
+        public delegate void ProcessPollPacket(VFDdata data);
         public delegate void WriteTerminalForm(string message, bool send);
         public static event ProcessPollPacket OnProcessPollPacket;
         public static event WriteTerminalForm OnWriteTerminalForm;
@@ -57,13 +50,11 @@ namespace VFDcontrol
 
         public static void InitialPoll()
         {
-            _mode = SerialMode.init;
-
             byte[] packet = new byte[6];
             packet[0] = (byte)VFDsettings.VFD_ModBusID;
             packet[1] = (byte)CommandType.ReadControlData;
             packet[2] = (byte)CommandLength.ThreeBytes;
-            packet[3] = (byte)ModbusRegisters.CurrentRPM;
+            packet[3] = (byte)ControlDataType.OutF;
             packet[4] = 0x00;
             packet[5] = 0x00;
 
@@ -130,7 +121,7 @@ namespace VFDcontrol
 
         public static void StartPolling()
         {
-            _mode = SerialMode.poll;
+            DownloadUploadMode = false;
             _spindleActive.Set();
         }
 
@@ -178,7 +169,7 @@ namespace VFDcontrol
 
         public static int SendData(byte[] dataToSend)
         {
-            _mode = SerialMode.download;
+            DownloadUploadMode = true;
             lock (_commandQueue)
             {
                 _commandQueue.Enqueue(crc16byte(dataToSend));
@@ -203,116 +194,63 @@ namespace VFDcontrol
 
         private static void ProcessReceivedPacket(byte[] receivedPacket)
         {
-            string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - before CRC check";
+            if (receivedPacket[0] != (byte)VFDsettings.VFD_ModBusID)
+                return;
 
-            if (CRCCheck(receivedPacket))
-            { 
-                if (_mode == SerialMode.poll)
-                {
-                    // check if the received packet is a response to a status poll
-                    if (receivedPacket[0] == (byte)VFDsettings.VFD_ModBusID &&
-                        receivedPacket[1] == (byte)CommandType.ReadControlData &&
-                        receivedPacket[2] == (byte)CommandLength.ThreeBytes &&
-                        statusResponseBytes.Contains(receivedPacket[3]))
-                    {
-                        OnProcessPollPacket?.Invoke(receivedPacket);
-                    }
-                }
-                else if(_mode == SerialMode.download)
-                {
-                    int receivedValue = Convert.ToInt32(receivedPacket[receivedPacket.Length - 3]);
-                    if (receivedPacket.Length == 8)
-                    {
-                        receivedValue += Convert.ToInt32(receivedPacket[receivedPacket.Length - 4] << 8);
-                    }
+            if (receivedPacket.Length < 4)
+                return;
 
-                    _receivedQueue.Enqueue(receivedValue);
-                    message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
-                    Debug.Print(message);
-                    OnWriteTerminalForm?.Invoke(message, false);
+            string hexString = ByteArrayToHexString(receivedPacket);
+            if (!CRCCheck(receivedPacket))
+            {
+                Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {hexString}");
+                return;
+            }
 
-                }
-                else if(_mode == SerialMode.init)
-                {
-                    if (receivedPacket.Length == 8)
-                    {
-                        int rawValue = Convert.ToInt32((receivedPacket[4] << 8) + receivedPacket[5]);
+            int receivedValue = Convert.ToInt32(receivedPacket[receivedPacket.Length - 3]);
+            if (receivedPacket.Length == 8)
+            {
+                receivedValue += Convert.ToInt32(receivedPacket[receivedPacket.Length - 4] << 8);
+            }
 
-                        switch (receivedPacket[3])
-                        {
-                            case (byte)ModbusRegisters.CurrentRPM:
-                                OnProcessPollPacket?.Invoke(receivedPacket);
-                                return;
-                            case (byte)ModbusRegisters.MaxFreq:
-                                VFDsettings.VFD_MaxFreq = rawValue / 100;
-                                PrintReceivedData("Maximum Frequency (Hz)", VFDsettings.VFD_MaxFreq);
-                                return;
-                            case (byte)ModbusRegisters.MinFreq:
-                                VFDsettings.VFD_MinFreq = rawValue / 100;
-                                PrintReceivedData("Minimum Frequency (Hz)", VFDsettings.VFD_MinFreq);
-                                return;
-                            case (byte)ModbusRegisters.MaxRPM:
-                                VFDsettings.VFD_MaxRPM = rawValue;
-                                PrintReceivedData("Maximum RPM", VFDsettings.VFD_MaxRPM);
-                                return;
-                            case (byte)ModbusRegisters.IntermediateFreq:
-                                VFDsettings.VFD_IntermediateFreq = rawValue / 100;
-                                PrintReceivedData("Intermediate Frequency", VFDsettings.VFD_IntermediateFreq);
-                                return;
-                            case (byte)ModbusRegisters.MinimumFreq:
-                                VFDsettings.VFD_MinimumFreq = rawValue / 100;
-                                PrintReceivedData("Minimum Frequency", VFDsettings.VFD_MinimumFreq);
-                                return;
-                            case (byte)ModbusRegisters.MaxVoltage:
-                                VFDsettings.VFD_MaxVoltage = rawValue / 10.0;
-                                PrintReceivedData("Maximum Output Voltage", VFDsettings.VFD_MaxVoltage);
-                                return;
-                            case (byte)ModbusRegisters.IntermediateVoltage:
-                                VFDsettings.VFD_IntermediateVoltage = rawValue / 10.0;
-                                PrintReceivedData("Intermediate Voltage", VFDsettings.VFD_IntermediateVoltage);
-                                return;
-                            case (byte)ModbusRegisters.MinVoltage:
-                                VFDsettings.VFD_MinVoltage = rawValue / 10;
-                                PrintReceivedData("Minimum Voltage", VFDsettings.VFD_MinVoltage);
-                                return;
-                            case (byte)ModbusRegisters.RatedMotorVoltage:
-                                VFDsettings.VFD_RatedMotorVoltage = rawValue / 10.0;
-                                PrintReceivedData("Rated Motor Voltage", VFDsettings.VFD_RatedMotorVoltage);
-                                return;
-                            case (byte)ModbusRegisters.RatedMotorCurrent:
-                                VFDsettings.VFD_RatedMotorCurrent = rawValue;
-                                PrintReceivedData("Rated Motor Current", VFDsettings.VFD_RatedMotorCurrent);
-                                return;
-                            case (byte)ModbusRegisters.NumberOfMotorPols:
-                                VFDsettings.VFD_NumberOfMotorPols = rawValue;
-                                PrintReceivedData("Number Of Motor Pols", VFDsettings.VFD_NumberOfMotorPols);
-                                return;
-                            case (byte)ModbusRegisters.InverterFrequency:
-                                VFDsettings.VFD_InverterFrequency = rawValue == 1?60:50;
-                                PrintReceivedData("Inverter Frequency (Hz)", VFDsettings.VFD_InverterFrequency);
-                                return;
-                        }
-
-                        // if unknown command then print:
-                        Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {ByteArrayToHexString(receivedPacket)} = {rawValue}");
-                    }
-                }
+            if (receivedPacket[1] == (byte)CommandType.ReadControlData && receivedPacket[2] == (byte)CommandLength.ThreeBytes)
+            {
+                ProcessControlData(receivedValue, receivedPacket[3]);
+                Debug.Print(VFDData.GetControlDataString());
+                OnProcessPollPacket?.Invoke(VFDData);
             }
             else
             {
-                Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {ByteArrayToHexString(receivedPacket)}");
+                if (DownloadUploadMode)
+                {
+                    _receivedQueue.Enqueue(receivedValue);
+                    string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {hexString} ({receivedValue})";
+                    Debug.Print(message);
+                    OnWriteTerminalForm?.Invoke(message, false);
+                }
+                else
+                {
+                    ProcessInitData(receivedValue, receivedPacket[3], hexString);
+                }
             }
         }
 
         private static void PrintReceivedData(string text, double value)
         {
-            Debug.Print($"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}");
+            string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}";
+            Console.WriteLine(message);
+            OnWriteTerminalForm?.Invoke(message, false);
         }
 
         private static void PrintSendData(byte[] buffer)
         {
-            int sentValue = Convert.ToInt32((buffer[buffer.Length - 4] << 8) + buffer[buffer.Length - 3]);
-            string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data sent : {ByteArrayToHexString(buffer)} ({sentValue})";
+            int rawValue = Convert.ToInt32(buffer[buffer.Length - 3]);
+            if (buffer.Length == 8)
+            {
+                rawValue += Convert.ToInt32(buffer[buffer.Length - 4] << 8);
+            }
+
+            string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data sent : {ByteArrayToHexString(buffer)} ({rawValue})";
             Console.WriteLine(message);
             OnWriteTerminalForm?.Invoke(message, true);
         }
@@ -336,7 +274,7 @@ namespace VFDcontrol
             catch (Exception ex)
             {
                 Console.WriteLine($"Unable to open serial port {comPort.PortName}, {comPort.BaudRate}");
-                VFDsettings.SerialConnected = false;
+                VFDData.SerialConnected = false;
                 return;
             }
 
@@ -345,14 +283,14 @@ namespace VFDcontrol
                 ComOpen = true;
                 Console.WriteLine($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}");
                 comPort.DataReceived += comPort_DataReceived;
-                VFDsettings.SerialConnected = true; // Report that the COM port has opened sucessfully
+                VFDData.SerialConnected = true; // Report that the COM port has opened sucessfully
             }
 
             byte[] statusRequestPacket = new byte[6];
             statusRequestPacket[0] = (byte)VFDsettings.VFD_ModBusID; // Slave address
             statusRequestPacket[1] = (byte)CommandType.ReadControlData; // Huanyang VFD Read Control Data
             statusRequestPacket[2] = (byte)CommandLength.ThreeBytes; // Number of bytes in request field
-            statusRequestPacket[3] = (byte)ModbusRegisters.SetFreq; // Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
+            statusRequestPacket[3] = 0x00; // Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
             statusRequestPacket[4] = 0x00; // Padding
             statusRequestPacket[5] = 0x00; // Padding
 
@@ -365,26 +303,18 @@ namespace VFDcontrol
                 var dataToSend = GetData(statusRequestPacket);
                 if (dataToSend != null)
                 {
-                    if (dataToSend[0] == 0xff)
+                    if (dataToSend[0] == 0xff && dataToSend[1] == 0xff) // everyone shotdown
                     {
-                        switch (dataToSend[1])
-                        {
-                            case 0xff:
-                                comPort.Close();
-                                VFDsettings.SerialConnected = false;
-                                ComOpen = false;
-                                return;
-                            case 0x01:
-                                statusRequestPacket[3] = 0x01;
-                                dataToSend = statusRequestPacket;
-                                break;
-                        }
+                        comPort.Close();
+                        VFDData.SerialConnected = false;
+                        ComOpen = false;
+                        return;
                     }
 
                     try
                     {
                         comPort.Write(dataToSend, 0, dataToSend.Length);
-                        if (_mode != SerialMode.poll)
+                        if (dataToSend[1] != (byte)CommandType.ReadControlData)
                         {
                             PrintSendData(dataToSend);
                         }
@@ -392,8 +322,7 @@ namespace VFDcontrol
                         if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
                         {
                             var dataReceived = ReadData(comPort, GetResponseLength(dataToSend[1]));
-                            if (dataReceived.Length > 3)
-                                ProcessReceivedPacket(dataReceived);
+                            ProcessReceivedPacket(dataReceived);
                         }
                     }
                     catch (Exception ex)
@@ -416,16 +345,15 @@ namespace VFDcontrol
                 {
                     return _commandQueue.Dequeue();
                 }
-                else if (_mode == SerialMode.poll)
+                else // If there is no command in the queue, use the time for polling
                 {
-                    // If there is no command in the queue, use the time for polling
+                    
+                    // loop through the registers and poll one at a time. 
                     if (statusRequestPacket[3] < 0x07) statusRequestPacket[3] += 1;
                     else statusRequestPacket[3] = 0x00;
 
                     return crc16byte(statusRequestPacket);
                 }
-
-                return null;
             }
         }
 
@@ -455,6 +383,92 @@ namespace VFDcontrol
                 case 0x05: return 7;
                 default: return 8;
             }
+        }
+
+        private static void ProcessControlData(int rawValue, byte cmdType)
+        {
+            switch (cmdType)
+            {
+                case (byte)ControlDataType.SetF:
+                    VFDData.SetFrequency = rawValue / 100.0;
+                    return;
+                case (byte)ControlDataType.OutF:
+                    VFDData.OutFrequency = rawValue / 100.0;
+                    return;
+                case (byte)ControlDataType.RoTT:
+                    VFDData.OutRPM = rawValue;
+                    return;
+                case (byte)ControlDataType.OutA:
+                    VFDData.OutAmp = rawValue / 10.0;
+                    return;
+                case (byte)ControlDataType.DCV:
+                    VFDData.OutVoltDC = rawValue / 10.0;
+                    return;
+                case (byte)ControlDataType.ACV:
+                    VFDData.OutVoltAC = rawValue / 10.0;
+                    return;
+                case (byte)ControlDataType.Tmp:
+                    VFDData.OutTemperature = rawValue;
+                    return;
+            }
+        }
+
+        private static void ProcessInitData(int rawValue, byte cmdType, string hexString)
+        {
+            switch (cmdType)
+            {
+                case (byte)ModbusRegisters.MaxFreq:
+                    VFDData.MaxFreq = rawValue / 100;
+                    PrintReceivedData("Maximum Frequency (Hz)", VFDData.MaxFreq);
+                    return;
+                case (byte)ModbusRegisters.MinFreq:
+                    VFDData.MinFreq = rawValue / 100;
+                    PrintReceivedData("Minimum Frequency (Hz)", VFDData.MinFreq);
+                    return;
+                case (byte)ModbusRegisters.MaxRPM:
+                    VFDData.MaxRPM = rawValue;
+                    PrintReceivedData("Maximum RPM", VFDData.MaxRPM);
+                    return;
+                case (byte)ModbusRegisters.IntermediateFreq:
+                    VFDData.IntermediateFreq = rawValue / 100;
+                    PrintReceivedData("Intermediate Frequency", VFDData.IntermediateFreq);
+                    return;
+                case (byte)ModbusRegisters.MinimumFreq:
+                    VFDData.MinimumFreq = rawValue / 100;
+                    PrintReceivedData("Minimum Frequency", VFDData.MinimumFreq);
+                    return;
+                case (byte)ModbusRegisters.MaxVoltage:
+                    VFDData.MaxVoltage = rawValue / 10.0;
+                    PrintReceivedData("Maximum Output Voltage", VFDData.MaxVoltage);
+                    return;
+                case (byte)ModbusRegisters.IntermediateVoltage:
+                    VFDData.IntermediateVoltage = rawValue / 10.0;
+                    PrintReceivedData("Intermediate Voltage", VFDData.IntermediateVoltage);
+                    return;
+                case (byte)ModbusRegisters.MinVoltage:
+                    VFDData.MinVoltage = rawValue / 10;
+                    PrintReceivedData("Minimum Voltage", VFDData.MinVoltage);
+                    return;
+                case (byte)ModbusRegisters.RatedMotorVoltage:
+                    VFDData.RatedMotorVoltage = rawValue / 10.0;
+                    PrintReceivedData("Rated Motor Voltage", VFDData.RatedMotorVoltage);
+                    return;
+                case (byte)ModbusRegisters.RatedMotorCurrent:
+                    VFDData.RatedMotorCurrent = rawValue;
+                    PrintReceivedData("Rated Motor Current", VFDData.RatedMotorCurrent);
+                    return;
+                case (byte)ModbusRegisters.NumberOfMotorPols:
+                    VFDData.NumberOfMotorPols = rawValue;
+                    PrintReceivedData("Number Of Motor Pols", VFDData.NumberOfMotorPols);
+                    return;
+                case (byte)ModbusRegisters.InverterFrequency:
+                    VFDData.InverterFrequency = rawValue == 1 ? 60 : 50;
+                    PrintReceivedData("Inverter Frequency (Hz)", VFDData.InverterFrequency);
+                    return;
+            }
+
+            // if unknown command then print:
+            Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {hexString} = {rawValue}");
         }
 
         private static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
