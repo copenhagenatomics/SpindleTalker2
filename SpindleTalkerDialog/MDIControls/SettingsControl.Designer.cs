@@ -42,6 +42,7 @@
             this.lblDataBits = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.labelMotorSettings = new System.Windows.Forms.Label();
             this.buttonResetVFD = new System.Windows.Forms.Button();
             this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
@@ -81,7 +82,7 @@
             this.gbPortSettings.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.gbPortSettings.Location = new System.Drawing.Point(3, 3);
             this.gbPortSettings.Name = "gbPortSettings";
-            this.gbPortSettings.Size = new System.Drawing.Size(303, 110);
+            this.gbPortSettings.Size = new System.Drawing.Size(303, 131);
             this.gbPortSettings.TabIndex = 6;
             this.gbPortSettings.TabStop = false;
             this.gbPortSettings.Text = "Serial Port Settings";
@@ -230,6 +231,7 @@
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.groupBox1.Controls.Add(this.labelMotorSettings);
             this.groupBox1.Controls.Add(this.buttonResetVFD);
             this.groupBox1.Controls.Add(this.numericUpDown4);
             this.groupBox1.Controls.Add(this.label8);
@@ -238,10 +240,20 @@
             this.groupBox1.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(312, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(303, 110);
+            this.groupBox1.Size = new System.Drawing.Size(303, 131);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "VFD Settings";
+            // 
+            // labelMotorSettings
+            // 
+            this.labelMotorSettings.AutoSize = true;
+            this.labelMotorSettings.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelMotorSettings.Location = new System.Drawing.Point(14, 106);
+            this.labelMotorSettings.Name = "labelMotorSettings";
+            this.labelMotorSettings.Size = new System.Drawing.Size(89, 15);
+            this.labelMotorSettings.TabIndex = 19;
+            this.labelMotorSettings.Text = "Motor Settings:";
             // 
             // buttonResetVFD
             // 
@@ -353,7 +365,7 @@
             // 
             this.groupBox2.Controls.Add(this.ButtonSaveQuickSet);
             this.groupBox2.Controls.Add(this.textBoxQuickset);
-            this.groupBox2.Location = new System.Drawing.Point(3, 119);
+            this.groupBox2.Location = new System.Drawing.Point(3, 140);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(612, 49);
             this.groupBox2.TabIndex = 8;
@@ -382,7 +394,7 @@
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(3, 171);
+            this.label3.Location = new System.Drawing.Point(3, 192);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(719, 20);
             this.label3.TabIndex = 10;
@@ -440,5 +452,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox comboBoxCSV;
         private System.Windows.Forms.Label label3;
+        public System.Windows.Forms.Label labelMotorSettings;
     }
 }

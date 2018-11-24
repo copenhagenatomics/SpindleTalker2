@@ -5,12 +5,9 @@ namespace VFDcontrol
 {
     public class VFDdata
     {
-        public delegate void ValueChanged(int minValue, int maxValue);
-        public delegate void MaxValueChanged(int maxValue);
+        public delegate void MaxValueChanged(VFDdata data);
         public delegate void SerialPortConnected(bool connected);
-        public event ValueChanged OnFreqChanged;
-        public event MaxValueChanged OnMaxFreqChanged;
-        public event MaxValueChanged OnRpmChanged;
+        public event MaxValueChanged OnChanged;
         public event SerialPortConnected OnSerialPortConnected;
 
         public  bool SerialConnected
@@ -31,7 +28,7 @@ namespace VFDcontrol
             set
             {
                 _MinFreq = value;
-                OnFreqChanged?.Invoke(_MinFreq, _MaxFreq);
+                OnChanged?.Invoke(this);
             }
         }
         private  int _MinFreq;
@@ -42,8 +39,7 @@ namespace VFDcontrol
             set
             {
                 _MaxFreq = value;
-                OnFreqChanged?.Invoke(_MinFreq, _MaxFreq);
-                OnMaxFreqChanged?.Invoke(_MaxFreq);
+                OnChanged?.Invoke(this);
             }
         }
         private  int _MaxFreq;
@@ -54,7 +50,7 @@ namespace VFDcontrol
             set
             {
                 _MaxRPM = value;
-                OnRpmChanged?.Invoke(_MaxRPM);
+                OnChanged?.Invoke(this);
             }
         }
         private  int _MaxRPM;
@@ -97,6 +93,7 @@ namespace VFDcontrol
             set
             {
                 _MaxVoltage = value;
+                OnChanged?.Invoke(this);
             }
         }
         private  double _MaxVoltage;
@@ -127,6 +124,7 @@ namespace VFDcontrol
             set
             {
                 _RatedMotorVoltage = value;
+                OnChanged?.Invoke(this);
             }
         }
         private  double _RatedMotorVoltage;
@@ -137,6 +135,7 @@ namespace VFDcontrol
             set
             {
                 _RatedMotorCurrent = value;
+                OnChanged?.Invoke(this);
             }
         }
         private  double _RatedMotorCurrent;
@@ -147,6 +146,7 @@ namespace VFDcontrol
             set
             {
                 _NumberOfMotorPols = value;
+                OnChanged?.Invoke(this);
             }
         }
         private  int _NumberOfMotorPols;

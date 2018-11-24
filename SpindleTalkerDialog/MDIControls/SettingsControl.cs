@@ -17,8 +17,7 @@ namespace SpindleTalker2
             csvSeperator = ';';
             _mainWindow = mainWindow;
             comboBoxCSV.SelectedText = csvSeperator.ToString();
-            HYmodbus.VFDData.OnFreqChanged += VFDsettings_OnFreqChanged;
-            HYmodbus.VFDData.OnRpmChanged += VFDsettings_OnRpmChanged;
+            HYmodbus.VFDData.OnChanged += VFDData_OnChanged;
         }
 
         private void SettingsForm_Load(object sender, EventArgs e)
@@ -26,27 +25,17 @@ namespace SpindleTalker2
             textBoxQuickset.Text = VFDsettings.QuickSets;
         }
 
-        private void VFDsettings_OnFreqChanged(int minValue, int maxValue)
+        private void VFDData_OnChanged(VFDdata data)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() => VFDsettings_OnFreqChanged(minValue, maxValue)));
+                this.Invoke(new Action(() => VFDData_OnChanged(data)));
             }
             else
             {
-                labelMinMaxFreq.Text = string.Format("Min/Max Frequency = {0}Hz/{1}Hz", minValue, maxValue);
-            }
-        }
-
-        private void VFDsettings_OnRpmChanged(int maxValue)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new Action(() => VFDsettings_OnRpmChanged(maxValue)));
-            }
-            else
-            {
-                labelMaxRPM.Text = string.Format("Maximum speed = {0:#,##0}RPM", maxValue);
+                labelMinMaxFreq.Text = $"Min/Max Frequency = {data.MinFreq} Hz/{data.MaxFreq} Hz";
+                labelMaxRPM.Text = $"Maximum speed = {data.MaxRPM} RPM";
+                labelMotorSettings.Text = $"Motor settings: {data.NumberOfMotorPols} poles, Volt: {data.RatedMotorVoltage} VAC, Amps: {data.RatedMotorCurrent} A";
             }
         }
 

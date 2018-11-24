@@ -14,17 +14,16 @@ namespace SpindleTalker2
         {
             InitializeComponent();
             _mainWindow = spindleTalkerBase;
-            HYmodbus.OnProcessPollPacket += Serial_ProcessPollPacket;
-            HYmodbus.VFDData.OnMaxFreqChanged += VFDsettings_OnMaxFreqChanged;
-            HYmodbus.VFDData.OnRpmChanged += VFDsettings_OnRpmChanged;
+            HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
+            HYmodbus.VFDData.OnChanged += VFDdata_OnChanged;
             Spindle.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
         }
 
-        private void Serial_ProcessPollPacket(VFDdata data)
+        private void HYmodbus_ProcessPollPacket(VFDdata data)
         {
             if (this.InvokeRequired)
             {
-                try { this.Invoke(new Action(() => Serial_ProcessPollPacket(data))); } catch { }
+                try { this.Invoke(new Action(() => HYmodbus_ProcessPollPacket(data))); } catch { }
             }
             else
             {
@@ -41,29 +40,18 @@ namespace SpindleTalker2
             }
         }
 
-        private void VFDsettings_OnMaxFreqChanged(int maxValue)
+        private void VFDdata_OnChanged(VFDdata data)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() => VFDsettings_OnMaxFreqChanged(maxValue)));
+                this.Invoke(new Action(() => VFDdata_OnChanged(data)));
             }
             else
             {
-                MeterOutF.ScaleMaxValue = maxValue;
-                MeterSetF.ScaleMaxValue = maxValue;
-            }
-        }
-
-        private void VFDsettings_OnRpmChanged(int maxValue)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new Action(() => VFDsettings_OnRpmChanged(maxValue)));
-            }
-            else
-            {
-                MeterRPM.ScaleMaxValue = maxValue;
-                MeterRPM.ScaleMaxValue = maxValue;  // why do we set this twice?
+                MeterOutF.ScaleMaxValue = data.MaxFreq;
+                MeterSetF.ScaleMaxValue = data.MaxFreq;
+                MeterRPM.ScaleMaxValue = data.MaxRPM;
+                MeterAmps.ScaleMaxValue = data.RatedMotorCurrent;
             }
         }
 
