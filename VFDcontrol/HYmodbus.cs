@@ -208,7 +208,7 @@ namespace VFDcontrol
                 Debug.Print(VFDData.GetControlDataString());
                 OnProcessPollPacket?.Invoke(VFDData);
             }
-            else
+            else if(receivedPacket[1] == (byte)CommandType.FunctionRead || receivedPacket[1] == (byte)CommandType.FunctionWrite)
             {
                 if (DownloadUploadMode)
                 {
