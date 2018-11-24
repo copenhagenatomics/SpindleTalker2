@@ -89,6 +89,7 @@ namespace SpindleTalker2.UserControls
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 RegisterValue.Download(dialog.FileName, _settingsForm.csvSeperator);
+                Serial.StartPolling();
                 MessageBox.Show("Finished downloading all values to file");
             }
         }
@@ -106,6 +107,8 @@ namespace SpindleTalker2.UserControls
                 { 
                     MessageBox.Show("Finished uploading all values to VFD");
                 }
+
+                Serial.StartPolling();
             }
         }
     }

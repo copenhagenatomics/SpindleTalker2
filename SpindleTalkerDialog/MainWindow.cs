@@ -11,6 +11,7 @@ using System.Threading;
 using System.Windows.Forms;
 using SpindleTalker2.Properties;
 using VFDcontrol;
+using System.IO;
 
 namespace SpindleTalker2
 {
@@ -71,6 +72,9 @@ namespace SpindleTalker2
                 timerInitialPoll.Start();
                 stopWatchInitialPoll.Start();
             }
+
+            foreach (var file in Directory.GetFiles("font", "*.ttf"))
+                InstallFont.UsingShell32(file);
 
         }
 
@@ -276,8 +280,8 @@ namespace SpindleTalker2
             if (VFDsettings.VFD_MaxFreq > 0 && VFDsettings.VFD_MinFreq >= 0 && VFDsettings.VFD_MaxRPM > 0 && _meterControl.MeterRPM.Value >= 0)
             {
                 timerInitialPoll.Stop();
-                Serial.InitialPollFinished();
-                // VFDsettings.VFD_MaxRPM = (VFDsettings.VFD_MaxRPM / 50) * VFDsettings.VFD_MaxFreq;
+                Serial.StartPolling();
+                VFDsettings.VFD_MaxRPM = (int)(VFDsettings.VFD_MaxRPM * VFDsettings.VFD_MaxFreq / 50.0);
                 PopulateQuickSets();
                 toolStripStatusLabelVFDStatus.Text = "VFD Settings Downloaded";
                 toolStripStatusLabelVFDStatus.Image = Resources.greenLED;

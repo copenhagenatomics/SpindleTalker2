@@ -9,22 +9,26 @@ using System.Windows.Forms;
 
 namespace VFDcontrol
 {
+    public enum SerialMode
+    {
+        init = 0, 
+        poll = 1, 
+        download = 2 
+    }
+
     // for more information see also:
     // https://github.com/bebro/linuxcnc-huanyang-vfd/blob/emc2/hy_modbus.c
     public static class Serial
     {
-        #region Initialization
-
         private static Queue<byte[]> _commandQueue = new Queue<byte[]>();
         private static Queue<int> _receivedQueue = new Queue<int>();
         private static ManualResetEvent _spindleActive = new ManualResetEvent(true);
         private static ManualResetEvent _dataReadyToRead = new ManualResetEvent(true);
         private static int responseWaitTimeout = 100; // in milliseconds
         private static byte[] statusResponseBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
-        private static bool _doNotPoll = true; // for debug testing purposes
-        private static bool _debugPrint = true;
+        private static SerialMode _mode;
         public static bool ComOpen { get; private set; }
-
+        
         static Serial()
         {
             ComOpen = false;
@@ -33,9 +37,6 @@ namespace VFDcontrol
             new Thread(() => DoWork()).Start();
         }
 
-
-        #endregion
-
         public delegate void ProcessPollPacket(byte[] pollPacket);
         public delegate void WriteTerminalForm(string message, bool send);
         public static event ProcessPollPacket OnProcessPollPacket;
@@ -43,10 +44,8 @@ namespace VFDcontrol
 
         #region Public Methods
 
-        public static void Connect(bool debug = false)
+        public static void Connect()
         {
-            _debugPrint = debug;
-
             if(!ComOpen)
             {
                 new Thread(() => DoWork()).Start();
@@ -58,7 +57,7 @@ namespace VFDcontrol
 
         public static void InitialPoll()
         {
-            _doNotPoll = true;
+            _mode = SerialMode.init;
 
             byte[] packet = new byte[6];
             packet[0] = (byte)VFDsettings.VFD_ModBusID;
@@ -122,11 +121,6 @@ namespace VFDcontrol
 
         }
 
-        public static void InitialPollFinished()
-        {
-            _doNotPoll = false;
-        }
-
         public static void Disconnect()
         {
             _commandQueue.Clear();
@@ -134,7 +128,11 @@ namespace VFDcontrol
             Thread.Sleep(100);
         }
 
-        public static void StopPolling() { _spindleActive.Reset(); }
+        public static void StartPolling()
+        {
+            _mode = SerialMode.poll;
+            _spindleActive.Set();
+        }
 
         public static byte[] CRCSign(byte[] byteArrayToSign) { return crc16byte(byteArrayToSign); }
 
@@ -180,13 +178,14 @@ namespace VFDcontrol
 
         public static int SendData(byte[] dataToSend)
         {
+            _mode = SerialMode.download;
             lock (_commandQueue)
             {
                 _commandQueue.Enqueue(crc16byte(dataToSend));
             }
 
             _spindleActive.Set();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 20; i++)
             {
                 Application.DoEvents();
                 if (_receivedQueue.Any())
@@ -208,7 +207,7 @@ namespace VFDcontrol
 
             if (CRCCheck(receivedPacket))
             { 
-                if (_doNotPoll == false)
+                if (_mode == SerialMode.poll)
                 {
                     // check if the received packet is a response to a status poll
                     if (receivedPacket[0] == (byte)VFDsettings.VFD_ModBusID &&
@@ -218,16 +217,22 @@ namespace VFDcontrol
                     {
                         OnProcessPollPacket?.Invoke(receivedPacket);
                     }
-                    else
-                    {
-                        int receivedValue = Convert.ToInt32((receivedPacket[receivedPacket.Length - 4] << 8) + receivedPacket[receivedPacket.Length - 3]);
-                        _receivedQueue.Enqueue(receivedValue);
-                        message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
-                        Debug.Print(message);
-                        OnWriteTerminalForm?.Invoke(message, false);
-                    }
                 }
-                else
+                else if(_mode == SerialMode.download)
+                {
+                    int receivedValue = Convert.ToInt32(receivedPacket[receivedPacket.Length - 3]);
+                    if (receivedPacket.Length == 8)
+                    {
+                        receivedValue += Convert.ToInt32(receivedPacket[receivedPacket.Length - 4] << 8);
+                    }
+
+                    _receivedQueue.Enqueue(receivedValue);
+                    message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data received : {ByteArrayToHexString(receivedPacket)} ({receivedValue})";
+                    Debug.Print(message);
+                    OnWriteTerminalForm?.Invoke(message, false);
+
+                }
+                else if(_mode == SerialMode.init)
                 {
                     if (receivedPacket.Length == 8)
                     {
@@ -308,7 +313,7 @@ namespace VFDcontrol
         {
             int sentValue = Convert.ToInt32((buffer[buffer.Length - 4] << 8) + buffer[buffer.Length - 3]);
             string message = $"{DateTime.Now.ToString("H:mm:ss.fff")} - Data sent : {ByteArrayToHexString(buffer)} ({sentValue})";
-            DebugPrint(message);
+            Console.WriteLine(message);
             OnWriteTerminalForm?.Invoke(message, true);
         }
 
@@ -350,7 +355,6 @@ namespace VFDcontrol
             statusRequestPacket[3] = (byte)ModbusRegisters.SetFreq; // Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
             statusRequestPacket[4] = 0x00; // Padding
             statusRequestPacket[5] = 0x00; // Padding
-            bool isCommandPacket;
 
             while (_spindleActive.WaitOne())
             {
@@ -358,7 +362,7 @@ namespace VFDcontrol
                 //      [xx]   |     [xx]     |      [xx]      | [xx] [xx] [..] | [xx][xx]
                 //    Slave ID | Command Type | Request Length |     Request    |   CRC   
                 //
-                var dataToSend = GetData(statusRequestPacket, out isCommandPacket);
+                var dataToSend = GetData(statusRequestPacket);
                 if (dataToSend != null)
                 {
                     if (dataToSend[0] == 0xff)
@@ -380,7 +384,7 @@ namespace VFDcontrol
                     try
                     {
                         comPort.Write(dataToSend, 0, dataToSend.Length);
-                        if (isCommandPacket)
+                        if (_mode != SerialMode.poll)
                         {
                             PrintSendData(dataToSend);
                         }
@@ -404,29 +408,24 @@ namespace VFDcontrol
             ComOpen = false;
         }
 
-        private static byte[] GetData(byte[] statusRequestPacket, out bool isCommandPacket)
+        private static byte[] GetData(byte[] statusRequestPacket)
         {
             lock (_commandQueue)
             {
-                isCommandPacket = false;
-                byte[] dataToSend = null;
                 if (_commandQueue.Count > 0)
                 {
-                    dataToSend = _commandQueue.Dequeue();
-                    isCommandPacket = true;
+                    return _commandQueue.Dequeue();
                 }
-                else
+                else if (_mode == SerialMode.poll)
                 {
-                    if (!_doNotPoll)
-                    {
-                        // If there is no command in the queue, use the time for polling
-                        if (statusRequestPacket[3] < 0x07) statusRequestPacket[3] += 1;
-                        else statusRequestPacket[3] = 0x00;
+                    // If there is no command in the queue, use the time for polling
+                    if (statusRequestPacket[3] < 0x07) statusRequestPacket[3] += 1;
+                    else statusRequestPacket[3] = 0x00;
 
-                        dataToSend = crc16byte(statusRequestPacket);
-                    }
+                    return crc16byte(statusRequestPacket);
                 }
-                return dataToSend;
+
+                return null;
             }
         }
 
@@ -458,19 +457,9 @@ namespace VFDcontrol
             }
         }
 
-        private static void DebugPrint(string msg)
-        {
-            if(_debugPrint) Console.WriteLine(msg);
-        }
-
         private static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             _dataReadyToRead.Set();
-        }
-
-        private static void pollSpinDown_Tick(object sender, EventArgs e)
-        {
-            StopPolling();
         }
 
         #endregion

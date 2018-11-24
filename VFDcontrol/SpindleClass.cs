@@ -34,7 +34,7 @@ namespace VFDcontrol
             // For future testing, the spindle reverse function doesn't appear to be working
             Serial.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
 
-            Serial.InitialPollFinished(); // this is odd, should be handled in another way. 
+            Serial.StartPolling();
         }
 
         public static void Stop()

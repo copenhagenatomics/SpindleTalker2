@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -47,11 +48,22 @@ namespace VFDcontrol
             {
                 case "byte": return byte.Parse(Value);
                 case "int": return (byte)(int.Parse(Value) >> shift);
-                case "intX10": return (byte)(((byte)(int.Parse(Value) / 10.0)) >> shift);
-                case "intX100": return (byte)(((byte)(int.Parse(Value) / 100.0)) >> shift);
-                case "intX1000": return (byte)(((byte)(int.Parse(Value) / 1000.0)) >> shift);
+                case "intX10": return (byte)(((byte)(int.Parse(Value) * 10.0)) >> shift);
+                case "intX100": return (byte)(((byte)(int.Parse(Value) * 100.0)) >> shift);
+                case "intX1000": return (byte)(((byte)(int.Parse(Value) * 1000.0)) >> shift);
                 case "char": return (byte)Value[0];
                 default: return 0;
+            }
+        }
+
+        private string ToValue()
+        {
+            switch(Type)
+            {
+                case "intX10": return (int.Parse(Value) / 10.0).ToString(CultureInfo.InvariantCulture);
+                case "intX100": return (int.Parse(Value) / 100.0).ToString(CultureInfo.InvariantCulture);
+                case "intX1000": return (int.Parse(Value) / 1000.0).ToString(CultureInfo.InvariantCulture);
+                default: return Value;
             }
         }
 
@@ -64,7 +76,7 @@ namespace VFDcontrol
                 switch (ID)
                 {
                     case 3: return "intX100";
-                    case 4: return "intX10";
+                    case 4: return "intX100";
                     case 5: return "intX100";
                     case 6: return "intX100";
                     case 7: return "intX100";
@@ -72,13 +84,47 @@ namespace VFDcontrol
                     case 9: return "intX10";
                     case 10: return "intX10";
                     case 11: return "intX100";
-                    case 27: return "intX10";
-                    case 28: return "intX10";
+                    case 27: return "intX100";
+                    case 28: return "intX100";
                     case 29: return "intX10";
                     case 30: return "intX10";
                     case 31: return "intX10";
                     case 32: return "intX10";
                     case 34: return "intX10";
+                    case 42: return "intX100";
+                    case 59: return "intX100";
+                    case 62: return "intX100";
+                    case 63: return "intX10";
+                    case 72: return "intX100";
+                    case 86: return "intX100";
+                    case 87: return "intX100";
+                    case 88: return "intX100";
+                    case 89: return "intX100";
+                    case 90: return "intX100";
+                    case 91: return "intX100";
+                    case 92: return "intX100";
+                    case 93: return "intX100";
+                    case 94: return "intX100";
+                    case 95: return "intX100";
+                    case 96: return "intX100";
+                    case 97: return "intX100";
+                    case 98: return "intX100";
+                    case 99: return "intX100";
+                    case 100: return "intX100";
+                    case 101: return "intX10";
+                    case 102: return "intX10";
+                    case 121: return "intX10";
+                    case 125: return "intX10";
+                    case 138: return "intX100";
+                    case 141: return "intX10";
+                    case 142: return "intX10";
+                    case 145: return "intX10";
+                    case 152: return "intX10";
+                    case 154: return "intX10";
+                    case 156: return "intX10";
+                    case 157: return "intX10";
+                    case 173: return "intX10";
+                    case 174: return "intX10";
                     default: return "byte";
                 }
             }
@@ -242,21 +288,22 @@ namespace VFDcontrol
 
         public static bool Upload(string fileName, char csvSeperator)
         {
-            var lines = RegisterValue.LoadCsv(fileName, csvSeperator);
+            var lines = LoadCsv(fileName, csvSeperator);
             if (lines != null)
             {
-                foreach (var line in lines)
+                foreach (var line in lines.Where(x => x.DefaultValue != "Unknown"))
                 {
                     try
                     {
-                        Serial.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
-                        Thread.Sleep(10);
+                        var result = Serial.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.data0, line.data1, line.data2);
+                        Debug.Print(result.ToString());
                     }
                     catch (Exception ex)
                     {
                         Debug.Print(ex.ToString());
                     }
                 }
+
                 return true;
             }
 
@@ -266,14 +313,17 @@ namespace VFDcontrol
         public static void Download(string fileName, char seperator)
         {
             var lines = new List<string>();
-            lines.Add(RegisterValue.Header(seperator));
-            for (int i = 1; i < 200; i++)
+            lines.Add(Header(seperator));
+            for (int i = 0; i < 200; i++)
             {
                 try
                 {
                     var result = Serial.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
                     if (result != null)
+                    {
+                        result.Value = result.ToValue();
                         lines.Add(result.ToString(seperator));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -304,6 +354,14 @@ namespace VFDcontrol
                     case 11: return "0";
                     case 12: return "0";
                     case 13: return "0";
+                    case 14: return "120";
+                    case 15: return "120";
+                    case 16: return "200";
+                    case 17: return "200";
+                    case 18: return "400";
+                    case 19: return "400";
+                    case 20: return "800";
+                    case 21: return "800";
                     case 22: return "0";
                     case 23: return "1";
                     case 24: return "1";
@@ -317,7 +375,6 @@ namespace VFDcontrol
                     case 32: return "5";
                     case 33: return "150";
                     case 34: return "0.5";
-                    case 35: return "0";
                     case 41: return "5 (4 kHz)";
                     case 42: return "5";
                     case 43: return "1";
@@ -343,7 +400,6 @@ namespace VFDcontrol
                     case 64: return "1";
                     case 65: return "0";
                     case 66: return "0";
-                    case 67: return "Not used";
                     case 70: return "0";
                     case 71: return "20";
                     case 72: return "50";
@@ -353,7 +409,7 @@ namespace VFDcontrol
                     case 76: return "0";
                     case 77: return "0";
                     case 78: return "0";
-                    case 79: return "Not used";
+                    case 79: return "1";
                     case 80: return "0";
                     case 81: return "0";
                     case 82: return "0";
@@ -393,9 +449,6 @@ namespace VFDcontrol
                     case 124: return "0";
                     case 125: return "1";
                     case 126: return "0";
-                    case 127: return "0";
-                    case 128: return "0";
-                    case 129: return "0";
                     case 130: return "0";
                     case 131: return "60";
                     case 132: return "5";
@@ -406,16 +459,13 @@ namespace VFDcontrol
                     case 137: return "80";
                     case 138: return "20";
                     case 139: return "20";
-                    case 140: return "0";
-                    case 141: return "?";
-                    case 142: return "?";
+                    case 141: return "220";
+                    case 142: return "17";
                     case 143: return "4";
                     case 144: return "1440";
                     case 145: return "2";
                     case 146: return "40";
-                    case 147: return "0";
-                    case 148: return "0";
-                    case 149: return "0";
+                    case 147: return "100";
                     case 150: return "1";
                     case 151: return "0";
                     case 152: return "1";
@@ -425,7 +475,7 @@ namespace VFDcontrol
                     case 156: return "100";
                     case 157: return "5";
                     case 158: return "0";
-                    case 159: return "?";
+                    case 159: return "0";
                     case 160: return "0";
                     case 161: return "100";
                     case 162: return "0";
@@ -436,16 +486,19 @@ namespace VFDcontrol
                     case 167: return "0";
                     case 168: return "0";
                     case 170: return "0";
-                    case 171: return "0";
-                    case 172: return "0";
-                    case 173: return "0";
-                    case 174: return "?";
+                    case 171: return "7";
+                    case 172: return "88";
+                    case 173: return "255";
+                    case 174: return "7";
                     case 175: return "0";
                     case 176: return "0";
-                    case 177: return "0";
-                    case 178: return "0";
-                    case 179: return "0";
-                    case 180: return "0";
+                    case 177: return "91";
+                    case 178: return "89";
+                    case 179: return "255";
+                    case 180: return "255";
+                    case 181: return "88";
+                    case 182: return "18091";
+                    case 183: return "65535";
                     default: return "Unknown";
                 }
             }
@@ -899,23 +952,23 @@ namespace VFDcontrol
 
         public static List<RegisterValue> LoadCsv(string filename, char seperator = ',')
         {
-            var lines = File.ReadAllLines(filename).Select(x => x.Replace(seperator, ',')).ToList();
-            if (lines[0] == RegisterValue.Header(seperator))
+            var lines = File.ReadAllLines(filename).ToList();
+            if (lines[0] == Header(seperator))
             {
                 var result = new List<RegisterValue>();
                 foreach (var line in lines.Skip(1))
                 {
-                    var row = line.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
-                    if (row.Count() != RegisterValue.ColumnCount)
+                    var row = line.Split(new char[] { seperator }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    if (row.Count() != ColumnCount)
                     {
                         MessageBox.Show("Invalid column count in row:" + line);
                         return null;
                     }
 
                     var item = new RegisterValue(row[0]);
-                    item.Value = row[3];
-                    if (item.Type != row[1]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Type} <> {row[1]}");
-                    if (item.Unit != row[4]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Unit} <> {row[4]}");
+                    item.Value = row[1];
+                    if (item.Type != row[3]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Type} <> {row[3]}");
+                    if (item.Unit != row[5]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Unit} <> {row[5]}");
                     result.Add(item);
                 }
 
