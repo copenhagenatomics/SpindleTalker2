@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace VFDcontrol
 {
@@ -188,9 +188,16 @@ namespace VFDcontrol
         public  double OutRPM
         {
             get { return _outRPM; }
-            set { _outRPM = value; }
+            set { _outRPM = value;  _timestamp = DateTime.UtcNow;   }
         }
         private  double _outRPM;
+
+        public DateTime TimeStamp
+        {
+            get { return _timestamp; }
+        }
+
+        private DateTime _timestamp;
 
         public  double OutAmp
         {
@@ -227,9 +234,14 @@ namespace VFDcontrol
             MaxRPM = -1;
         }
 
-        public string GetControlDataString()
+        public override string ToString()
         {
-            return $"Set Freq: {SetFrequency}, Out Freq: {OutFrequency}, RPM: {OutRPM}, Amp: {OutAmp}, VoltDC: {OutVoltDC}, VoltAC: {OutVoltAC}, Temp: {OutTemperature}";
+            return $"Set Freq: {SetFrequency}, Out Freq: {OutFrequency}, RPM: {OutRPM}, Amp: {OutAmp}, VoltDC: {OutVoltDC}, VoltAC: {OutVoltAC}, Temp: {OutTemperature}°C";
+        }
+
+        public List<double> GetValues()
+        {
+            return new List<double> { SetFrequency, OutFrequency, OutAmp, OutRPM, OutVoltDC, OutVoltAC, OutTemperature };
         }
 
         public bool InitDataOK()
