@@ -26,6 +26,7 @@ namespace VFDcontrol
             get
             {
                 var list = OrderedPortNames();
+                if (!list.Any()) return "COM1"; 
                 var port = _settings.GetItemOrDefaultValue("PortName", list.First()).ToString();
                 return list.Contains(port) ? port : list.First();
             }
