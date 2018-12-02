@@ -57,6 +57,7 @@ namespace VFDcontrol
             packet[3] = (byte)ControlDataType.OutF;
             packet[4] = 0x00;
             packet[5] = 0x00;
+            VFDData.Clear();
 
             // Request current RPM to see if the spindle is actually still running
             SendDataAsync(packet);
@@ -220,6 +221,8 @@ namespace VFDcontrol
                 else
                 {
                     ProcessInitData(receivedValue, receivedPacket[3], hexString);
+                    if (VFDData.InitDataOK())
+                        StartPolling();
                 }
             }
         }

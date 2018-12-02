@@ -231,5 +231,10 @@ namespace VFDcontrol
         {
             return $"Set Freq: {SetFrequency}, Out Freq: {OutFrequency}, RPM: {OutRPM}, Amp: {OutAmp}, VoltDC: {OutVoltDC}, VoltAC: {OutVoltAC}, Temp: {OutTemperature}";
         }
+
+        public bool InitDataOK()
+        {
+            return MaxFreq > 0 && MinFreq >= 0 && MaxRPM > 0 && OutRPM >= 0;
+        }
     }
 }

@@ -277,10 +277,9 @@ namespace SpindleTalker2
 
         private void timerInitialPoll_Tick(object sender, EventArgs e)
         {
-            if (HYmodbus.VFDData.MaxFreq > 0 && HYmodbus.VFDData.MinFreq >= 0 && HYmodbus.VFDData.MaxRPM > 0 && _meterControl.MeterRPM.Value >= 0)
+            if (HYmodbus.VFDData.InitDataOK())
             {
                 timerInitialPoll.Stop();
-                HYmodbus.StartPolling();
                 PopulateQuickSets();
                 toolStripStatusLabelVFDStatus.Text = "VFD Settings Downloaded";
                 toolStripStatusLabelVFDStatus.Image = Resources.greenLED;
