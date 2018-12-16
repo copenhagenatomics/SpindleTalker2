@@ -14,7 +14,7 @@ namespace VFDcontrol
 
         static VFDsettings()
         {
-            settingsFile = "settings.xml";
+            settingsFile = Path.GetFullPath("settings.xml");
             Console.WriteLine($"Motor controller settings file: {settingsFile}");
 
             if (File.Exists(settingsFile))
