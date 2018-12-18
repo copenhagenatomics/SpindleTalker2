@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace SpindleTalker2
@@ -21,8 +19,13 @@ namespace SpindleTalker2
             }
             catch (Exception e)
             {
+                if (e.ToString().Contains("Could not load file or assembly 'Microsoft.VisualBasic"))
+                    Console.WriteLine("Please install: sudo apt-get install mono-vbnc");
 
-                MessageBox.Show(e.InnerException.ToString());
+                if(e.InnerException == null)
+                    MessageBox.Show(e.ToString());
+                else
+                    MessageBox.Show(e.InnerException.ToString());
             }
         }
     }
