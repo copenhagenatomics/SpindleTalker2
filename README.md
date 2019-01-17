@@ -100,7 +100,7 @@ Then I run
  
 > sudo apt-get install mono-complete
 
-After this you can download the zip here form github or FTP it to your RaspberryPi and run it with this command:
+After this you can download the release zip file here form github or FTP it to your RaspberryPi and run it with this command:
 
 > sudo mono --debug SpindleTalker2.exe
 

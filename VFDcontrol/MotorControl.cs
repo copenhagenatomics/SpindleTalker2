@@ -6,6 +6,7 @@ namespace VFDcontrol
     {
         public delegate void SpindleShuttingDown(bool stop);
         public static event SpindleShuttingDown OnSpindleShuttingDown;
+        private static bool _stopping; 
 
         #region Control packet definitions
 
@@ -37,12 +38,17 @@ namespace VFDcontrol
             HYmodbus.StartPolling();
         }
 
-        public static void Stop()
+        public static bool Stop()
         {
+            if (_stopping)
+                return false;
+
             HYmodbus.SendDataAsync(stopSpindle);
             OnSpindleShuttingDown?.Invoke(true);
             Thread.Yield();
             SetRPM(0);
+            _stopping = true;
+            return true;
         }
 
         public static void SetRPM(int targetRPM)
@@ -83,6 +89,7 @@ namespace VFDcontrol
             controlPacket[4] = (byte)frequency; // returns the eight Least Significant Bits (LSB) of the int32 value
 
             HYmodbus.SendDataAsync(controlPacket);
+            _stopping = false;
         }
     }
 
