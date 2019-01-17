@@ -11,10 +11,10 @@ namespace SpindleTalker2
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
             try
             {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new MainWindow());
             }
             catch (Exception e)
