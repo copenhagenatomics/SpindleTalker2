@@ -239,6 +239,11 @@ namespace VFDcontrol
             return $"Set Freq: {SetFrequency}, Out Freq: {OutFrequency}, RPM: {OutRPM}, Amp: {OutAmp}, VoltDC: {OutVoltDC}, VoltAC: {OutVoltAC}, Temp: {OutTemperature}°C";
         }
 
+        public string MotorSettings()
+        {
+            return $"MaxFreq {MaxFreq}, MinFreq {MinFreq}, MaxVoltage {MaxVoltage}, MaxRPM {MaxRPM}, RatedMotorVoltag {RatedMotorVoltage}, RatedMotorCurrent {_RatedMotorCurrent}, RatedMotorRPM {RatedMotorRPM}";
+        }
+
         public List<double> GetValues()
         {
             return new List<double> { SetFrequency, OutFrequency, OutAmp, OutRPM, OutVoltDC, OutVoltAC, OutTemperature };

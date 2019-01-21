@@ -32,8 +32,10 @@ namespace VFDcontrol
 
         public delegate void ProcessPollPacket(VFDdata data);
         public delegate void WriteTerminalForm(string message, bool send);
+        public delegate void WriteLog(string message, bool error = false);
         public static event ProcessPollPacket OnProcessPollPacket;
         public static event WriteTerminalForm OnWriteTerminalForm;
+        public static event WriteLog OnWriteLog;
 
         #region Public Methods
 
@@ -193,7 +195,7 @@ namespace VFDcontrol
             string hexString = ByteArrayToHexString(receivedPacket);
             if (!CRCCheck(receivedPacket))
             {
-                Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {hexString}");
+                OnWriteLog($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {hexString}", true);
                 return;
             }
 
@@ -230,7 +232,7 @@ namespace VFDcontrol
         private static void PrintReceivedData(string text, double value)
         {
             string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}";
-            Console.WriteLine(message);
+            OnWriteLog(message, false);
             OnWriteTerminalForm?.Invoke(message, false);
         }
 
@@ -243,7 +245,7 @@ namespace VFDcontrol
             }
 
             string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data sent : {ByteArrayToHexString(buffer)} ({rawValue})";
-            Console.WriteLine(message);
+            OnWriteLog(message, false);
             OnWriteTerminalForm?.Invoke(message, true);
         }
 
@@ -265,7 +267,7 @@ namespace VFDcontrol
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unable to open serial port {comPort.PortName}, {comPort.BaudRate}");
+                OnWriteLog($"Unable to open serial port {comPort.PortName}, {comPort.BaudRate}", true);
                 VFDData.SerialConnected = false;
                 return;
             }
@@ -273,7 +275,7 @@ namespace VFDcontrol
             if (comPort.IsOpen)
             {
                 ComOpen = true;
-                Console.WriteLine($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}");
+                OnWriteLog($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}", false);
                 comPort.DataReceived += comPort_DataReceived;
                 VFDData.SerialConnected = true; // Report that the COM port has opened sucessfully
             }
@@ -319,7 +321,7 @@ namespace VFDcontrol
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("VFD Read / Write error: " + ex.ToString());
+                        OnWriteLog("VFD Read / Write error: " + ex.ToString(), true);
                         return; // exit. 
                     }
                 }
@@ -475,7 +477,7 @@ namespace VFDcontrol
             }
 
             // if unknown command then print:
-            Console.WriteLine($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {hexString} = {rawValue}");
+            OnWriteLog($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {hexString} = {rawValue}", false);
         }
 
         private static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
