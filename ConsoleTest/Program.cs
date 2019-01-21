@@ -13,19 +13,25 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
-            InitializeVFD();
-
-            MotorControl.SetRPM(500);
-
-            for (int i = 0; i < 20; i++)
+            try
             {
-                Thread.Sleep(1000);
-                Console.WriteLine(HYmodbus.VFDData.ToString());
+                InitializeVFD();
+
+                MotorControl.SetRPM(500);
+
+                for (int i = 0; i < 20; i++)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine(HYmodbus.VFDData.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
 
             StopAndCloseVFD();
             Console.WriteLine("bye...");
-
         }
 
         private static void InitializeVFD()
