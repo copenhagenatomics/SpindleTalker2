@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpindleTalker2", "SpindleTa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VFDcontrol", "VFDcontrol\VFDcontrol.csproj", "{A9CC462D-55CA-4BA4-B1B3-C02DCB932FEF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A9CC462D-55CA-4BA4-B1B3-C02DCB932FEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9CC462D-55CA-4BA4-B1B3-C02DCB932FEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9CC462D-55CA-4BA4-B1B3-C02DCB932FEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
