@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using SpindleTalker2.Properties;
 using VFDcontrol;
 using System.IO;
+using System.Diagnostics;
 
 namespace SpindleTalker2
 {
@@ -27,6 +28,12 @@ namespace SpindleTalker2
         {
             InitializeComponent();
             HYmodbus.VFDData.OnSerialPortConnected += COMPortStatus;
+            HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
+        }
+
+        private void HYmodbus_OnWriteLog(string message, bool error = false)
+        {
+            Debug.Print(message);
         }
 
         private System.Diagnostics.Stopwatch stopWatchInitialPoll = new System.Diagnostics.Stopwatch();
