@@ -13,6 +13,29 @@ namespace ConsoleTest
     {
         static void Main(string[] args)
         {
+            try
+            {
+                InitializeVFD();
+
+                MotorControl.SetRPM(500);
+
+                for (int i = 0; i < 20; i++)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine(HYmodbus.VFDData.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            StopAndCloseVFD();
+            Console.WriteLine("bye...");
+        }
+
+        private static void InitializeVFD()
+        {
             var serial = new SerialNumberMapper(false);
             if (!serial.McuBoards.Any(x => x.serialNumber == "unknown1"))
             {
@@ -43,23 +66,15 @@ namespace ConsoleTest
 
                 MotorControl.Start(SpindleDirection.Forward);
             }
+        }
 
-            MotorControl.SetRPM(500);
-
-
-            for (int i = 0; i < 20; i++)
-            {
-                Thread.Sleep(1000);
-                Console.WriteLine(HYmodbus.VFDData.ToString());
-            }
-
+        private static void StopAndCloseVFD()
+        {
             VFDsettings.Save();
             Console.WriteLine("Waiting for motor to stop... then closing serial port");
             MotorControl.Stop();
             Thread.Sleep(2000);
             HYmodbus.Disconnect();
-            Console.WriteLine("bye...");
-
         }
 
         public static void Serial_Write(string message, bool send)
