@@ -113,6 +113,18 @@ namespace VFDcontrol
             packet[3] = (byte)ModbusRegisters.InverterFrequency;
             SendDataAsync(packet);
 
+            // Request VFD voltage rating.
+            packet[3] = (byte)ModbusRegisters.VFDVoltageRating;
+            SendDataAsync(packet);
+
+            // Request motor acceleration.
+            packet[3] = (byte)ModbusRegisters.Acceleration;
+            SendDataAsync(packet);
+
+            // Request motor deceleration.
+            packet[3] = (byte)ModbusRegisters.Deceleration;
+            SendDataAsync(packet);
+
         }
 
         public static void Disconnect()
@@ -473,6 +485,18 @@ namespace VFDcontrol
                 case (byte)ModbusRegisters.InverterFrequency:
                     VFDData.InverterFrequency = rawValue == 1 ? 60 : 50;
                     PrintReceivedData("Inverter Frequency (Hz)", VFDData.InverterFrequency);
+                    return;
+                case (byte)ModbusRegisters.VFDVoltageRating:
+                    VFDData.VFDVoltageRating = rawValue / 10;
+                    PrintReceivedData("VFD Voltage rating (V)", VFDData.VFDVoltageRating);
+                    return;
+                case (byte)ModbusRegisters.Acceleration:
+                    VFDData.Acceleration = rawValue / 10;
+                    PrintReceivedData("Acceleration ", VFDData.Acceleration);
+                    return;
+                case (byte)ModbusRegisters.Deceleration:
+                    VFDData.Deceleration = rawValue / 10;
+                    PrintReceivedData("Deceleration", VFDData.Deceleration);
                     return;
             }
 

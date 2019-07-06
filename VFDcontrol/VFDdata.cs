@@ -171,6 +171,15 @@ namespace VFDcontrol
         }
         private  int _InverterFrequency;
 
+        public int VFDVoltageRating
+        {
+            get { return _VFDVoltageRating; }
+            set
+            {
+                _VFDVoltageRating = value;
+            }
+        }
+        private int _VFDVoltageRating;
         public  double SetFrequency
         {
             get { return _setFrequency; }
@@ -184,6 +193,20 @@ namespace VFDcontrol
             set { _outFrequency = value; }
         }
         private  double _outFrequency;
+
+        public double Acceleration
+        {
+            get { return _Acceleration; }
+            set { _Acceleration = value; }
+        }
+        private double _Acceleration;
+
+        public double Deceleration
+        {
+            get { return _Deceleration; }
+            set { _Deceleration = value; }
+        }
+        private double _Deceleration;
 
         public  double OutRPM
         {

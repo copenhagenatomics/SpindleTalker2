@@ -36,6 +36,7 @@ namespace SpindleTalker2
                 labelMinMaxFreq.Text = $"Min/Max Frequency = {data.MinFreq} Hz/{data.MaxFreq} Hz";
                 labelMaxRPM.Text = $"Rated motor speed (@50 Hz) = {data.RatedMotorRPM} RPM";
                 labelMotorSettings.Text = $"Motor settings: {data.NumberOfMotorPols} poles, Volt: {data.RatedMotorVoltage} VAC, Amps: {data.RatedMotorCurrent} A";
+                pictureBoxFreqVolt.Image = FreqVoltChart.Draw(data);
             }
         }
 
