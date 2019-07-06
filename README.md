@@ -104,7 +104,9 @@ After this you can download the release zip file here form github or FTP it to y
 
 > sudo mono --debug SpindleTalker2.exe
 
+You may also need to download the Microsoft.VisualBasic.dll v8 file into the same folder where SpindleTalker2.exe is located
 
+You can find it here: http://www.dlldownloader.com/microsoft-visualbasic-dll/
 
 
 
