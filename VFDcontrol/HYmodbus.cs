@@ -491,11 +491,11 @@ namespace VFDcontrol
                     PrintReceivedData("VFD Voltage rating (V)", VFDData.VFDVoltageRating);
                     return;
                 case (byte)ModbusRegisters.Acceleration:
-                    VFDData.Acceleration = rawValue / 10;
+                    VFDData.Acceleration = rawValue / 10.0;
                     PrintReceivedData("Acceleration ", VFDData.Acceleration);
                     return;
                 case (byte)ModbusRegisters.Deceleration:
-                    VFDData.Deceleration = rawValue / 10;
+                    VFDData.Deceleration = rawValue / 10.0;
                     PrintReceivedData("Deceleration", VFDData.Deceleration);
                     return;
             }
