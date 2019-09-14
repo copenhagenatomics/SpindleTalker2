@@ -118,6 +118,7 @@ namespace VFDcontrol
         public static void Disconnect()
         {
             _commandQueue.Clear();
+            VFDData.SerialConnected = false;
             SendDataAsync(new byte[] { 0xff, 0xff, 0xff, 0xff, 0xff });
             Thread.Sleep(100);
         }

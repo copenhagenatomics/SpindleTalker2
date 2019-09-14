@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VFDcontrol", "VFDcontrol\VF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerMeterMonitor", "PowerMeterMonitor\PowerMeterMonitor.csproj", "{EF7E5F75-3F6B-49FB-A670-CD4BD04E0924}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80F4B13F-C0F9-424C-A3ED-42F4FE14F8F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF7E5F75-3F6B-49FB-A670-CD4BD04E0924}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF7E5F75-3F6B-49FB-A670-CD4BD04E0924}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF7E5F75-3F6B-49FB-A670-CD4BD04E0924}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF7E5F75-3F6B-49FB-A670-CD4BD04E0924}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
