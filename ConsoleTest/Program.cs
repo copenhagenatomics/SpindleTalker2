@@ -49,7 +49,7 @@ namespace ConsoleTest
                 VFDsettings.BaudRate = 38400;
                 HYmodbus.OnWriteTerminalForm += Serial_Write;
                 HYmodbus.OnWriteLog += OnWriteLog;
-                HYmodbus.InitialPoll();
+                HYmodbus.InitialPollVFD();
 
                 int i = 0;
                 while (!HYmodbus.VFDData.InitDataOK())
