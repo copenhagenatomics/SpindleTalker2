@@ -81,7 +81,7 @@ namespace SpindleTalker2
             }
 
             foreach (var file in Directory.GetFiles("font", "*.ttf"))
-                InstallFont.UsingShell32(file);
+                InstallFont.RegisterFont(file);
 
         }
 

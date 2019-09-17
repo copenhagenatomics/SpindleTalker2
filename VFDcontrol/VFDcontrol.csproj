@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enums.cs" />
+    <Compile Include="FreqVoltChart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegisterValue.cs" />
     <Compile Include="HYmodbus.cs" />

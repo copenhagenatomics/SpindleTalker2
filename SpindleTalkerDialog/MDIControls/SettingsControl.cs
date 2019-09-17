@@ -17,6 +17,7 @@ namespace SpindleTalker2
             csvSeperator = ';';
             _mainWindow = mainWindow;
             comboBoxCSV.SelectedText = csvSeperator.ToString();
+            HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
             HYmodbus.VFDData.OnChanged += VFDData_OnChanged;
         }
 
@@ -36,6 +37,19 @@ namespace SpindleTalker2
                 labelMinMaxFreq.Text = $"Min/Max Frequency = {data.MinFreq} Hz/{data.MaxFreq} Hz";
                 labelMaxRPM.Text = $"Rated motor speed (@50 Hz) = {data.RatedMotorRPM} RPM";
                 labelMotorSettings.Text = $"Motor settings: {data.NumberOfMotorPols} poles, Volt: {data.RatedMotorVoltage} VAC, Amps: {data.RatedMotorCurrent} A";
+                pictureBoxFreqVolt.Image = FreqVoltChart.Draw(data);
+            }
+        }
+
+        private void HYmodbus_ProcessPollPacket(VFDdata data)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => VFDData_OnChanged(data)));
+            }
+            else
+            {
+                pictureBoxFreqVolt.Image = FreqVoltChart.Draw(data);
             }
         }
 

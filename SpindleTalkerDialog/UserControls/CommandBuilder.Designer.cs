@@ -184,9 +184,8 @@
             0,
             0});
             this.data0.Name = "data0";
-            this.data0.Size = new System.Drawing.Size(38, 20);
+            this.data0.Size = new System.Drawing.Size(42, 20);
             this.data0.TabIndex = 10;
-            this.data0.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // buttonSend
             // 

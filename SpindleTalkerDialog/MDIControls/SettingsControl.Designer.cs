@@ -56,6 +56,7 @@
             this.ButtonSaveQuickSet = new System.Windows.Forms.Button();
             this.textBoxQuickset = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.pictureBoxFreqVolt = new System.Windows.Forms.PictureBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.gbPortSettings.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -63,6 +64,7 @@
             this.flowLayoutPanel1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxFreqVolt)).BeginInit();
             this.SuspendLayout();
             // 
             // gbPortSettings
@@ -316,16 +318,18 @@
             // 
             // flowLayoutPanel1
             // 
+            this.flowLayoutPanel1.AutoSize = true;
             this.flowLayoutPanel1.Controls.Add(this.gbPortSettings);
             this.flowLayoutPanel1.Controls.Add(this.groupBox1);
             this.flowLayoutPanel1.Controls.Add(this.groupBox3);
             this.flowLayoutPanel1.Controls.Add(this.groupBox2);
             this.flowLayoutPanel1.Controls.Add(this.label3);
+            this.flowLayoutPanel1.Controls.Add(this.pictureBoxFreqVolt);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Font = new System.Drawing.Font("Calibri", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(730, 214);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(730, 420);
             this.flowLayoutPanel1.TabIndex = 2;
             this.flowLayoutPanel1.Resize += new System.EventHandler(this.SettingsForm_ResizeEnd);
             // 
@@ -396,9 +400,17 @@
             // 
             this.label3.Location = new System.Drawing.Point(3, 192);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(719, 20);
+            this.label3.Size = new System.Drawing.Size(2500, 20);
             this.label3.TabIndex = 10;
             this.label3.Text = "Default registers: PD001: 2, PD002: 2, PD163: 1, PD164: 3, PD165: 3";
+            // 
+            // pictureBoxFreqVolt
+            // 
+            this.pictureBoxFreqVolt.Location = new System.Drawing.Point(3, 215);
+            this.pictureBoxFreqVolt.Name = "pictureBoxFreqVolt";
+            this.pictureBoxFreqVolt.Size = new System.Drawing.Size(200, 200);
+            this.pictureBoxFreqVolt.TabIndex = 11;
+            this.pictureBoxFreqVolt.TabStop = false;
             // 
             // SettingsControl
             // 
@@ -406,7 +418,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.flowLayoutPanel1);
             this.Name = "SettingsControl";
-            this.Size = new System.Drawing.Size(730, 214);
+            this.Size = new System.Drawing.Size(730, 420);
             this.Tag = "Settings";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             this.gbPortSettings.ResumeLayout(false);
@@ -419,7 +431,9 @@
             this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxFreqVolt)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -453,5 +467,6 @@
         private System.Windows.Forms.ComboBox comboBoxCSV;
         private System.Windows.Forms.Label label3;
         public System.Windows.Forms.Label labelMotorSettings;
+        private System.Windows.Forms.PictureBox pictureBoxFreqVolt;
     }
 }
