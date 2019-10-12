@@ -1,10 +1,7 @@
 ﻿using CA_DataUploaderLib;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using VFDcontrol;
 
 namespace ConsoleTest
@@ -49,7 +46,7 @@ namespace ConsoleTest
                 VFDsettings.BaudRate = 38400;
                 HYmodbus.OnWriteTerminalForm += Serial_Write;
                 HYmodbus.OnWriteLog += OnWriteLog;
-                HYmodbus.InitialPollVFD();
+                HYmodbus.InitialPoll();
 
                 int i = 0;
                 while (!HYmodbus.VFDData.InitDataOK())

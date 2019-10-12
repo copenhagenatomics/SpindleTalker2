@@ -47,7 +47,7 @@ namespace VFDcontrol
             }
 
             _spindleActive.Reset();   
-            InitialPollVFD();
+            InitialPoll();
         }
 
         public static void InitialPollPowerMeter()
@@ -69,7 +69,7 @@ namespace VFDcontrol
             }
         }
 
-        public static void InitialPollVFD()
+        public static void InitialPoll()
         {
             byte[] packet = new byte[6];
             packet[0] = (byte)VFDsettings.VFD_ModBusID;
