@@ -48,6 +48,9 @@
     <Reference Include="LBIndustrialCtrls">
       <HintPath>.\LBIndustrialCtrls.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -157,6 +160,7 @@
     <None Include="Graphics\connect.png" />
     <None Include="Graphics\disconnect.png" />
     <None Include="Graphics\Start.png" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Graphics\Stop red.png" />
