@@ -45,6 +45,7 @@ namespace VFDcontrol
         OneByte = 0x01,
         TwoBytes = 0x02,
         ThreeBytes = 0x03,
+        Float = 0x04
     }
 
     public enum ControlResponse

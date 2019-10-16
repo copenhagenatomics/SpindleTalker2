@@ -50,6 +50,25 @@ namespace VFDcontrol
             InitialPoll();
         }
 
+        public static void InitialPollPowerMeter()
+        {
+            byte[] packet = new byte[8];
+            packet[0] = (byte)VFDsettings.VFD_ModBusID;
+            packet[1] = (byte)CommandType.ReadControlData;
+            packet[2] = (byte)CommandLength.Float;
+            packet[4] = 0x00;
+            packet[5] = 0x00;
+            packet[6] = 0x00;
+            packet[7] = 0x00;
+            VFDData.Clear();
+
+            for (byte i = 0; i < 20; i++)
+            {
+                packet[3] = i;
+                SendDataAsync(packet);
+            }
+        }
+
         public static void InitialPoll()
         {
             byte[] packet = new byte[6];
@@ -130,6 +149,7 @@ namespace VFDcontrol
         public static void Disconnect()
         {
             _commandQueue.Clear();
+            VFDData.SerialConnected = false;
             SendDataAsync(new byte[] { 0xff, 0xff, 0xff, 0xff, 0xff });
             Thread.Sleep(100);
         }
@@ -198,6 +218,12 @@ namespace VFDcontrol
 
         private static void ProcessReceivedPacket(byte[] receivedPacket)
         {
+            if (receivedPacket.Length == 0)
+            {
+                OnWriteTerminalForm?.Invoke($"no date received..", false);
+                return;
+            }
+
             if (receivedPacket[0] != (byte)VFDsettings.VFD_ModBusID)
                 return;
 
