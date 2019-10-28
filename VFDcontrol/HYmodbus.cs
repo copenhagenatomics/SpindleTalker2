@@ -303,7 +303,7 @@ namespace VFDcontrol
             {
                 comPort.Open();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 OnWriteLog($"Unable to open VFD serial port {comPort.PortName}, {comPort.BaudRate}", true);
                 VFDData.SerialConnected = false;
