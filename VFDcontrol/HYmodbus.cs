@@ -305,7 +305,7 @@ namespace VFDcontrol
             }
             catch (Exception ex)
             {
-                OnWriteLog($"Unable to open serial port {comPort.PortName}, {comPort.BaudRate}", true);
+                OnWriteLog($"Unable to open VFD serial port {comPort.PortName}, {comPort.BaudRate}", true);
                 VFDData.SerialConnected = false;
                 return;
             }
