@@ -289,6 +289,9 @@ namespace VFDcontrol
 
         static void DoWork()
         {
+            if (VFDsettings.BaudRate == 0)
+                return; // VFD not connected
+
             SerialPort comPort = new SerialPort();
             comPort.BaudRate = VFDsettings.BaudRate;
             comPort.DataBits = VFDsettings.DataBits;
