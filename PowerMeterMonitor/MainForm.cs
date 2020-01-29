@@ -4,12 +4,14 @@ using System.Drawing;
 using System.IO.Ports;
 using System.Threading;
 using System.Windows.Forms;
-using VFDcontrol;
+using VfdControl;
 
 namespace PowerMeterMonitor
 {
     public partial class MainForm : Form
     {
+        private MotorControl _hyMotorControl;
+
         public MainForm()
         {
             InitializeComponent();
@@ -28,9 +30,6 @@ namespace PowerMeterMonitor
             textBoxData0.Text = "0";
             textBoxData1.Text = "0";
             textBoxData2.Text = "0";
-
-            HYmodbus.OnWriteTerminalForm += HYmodbus_OnWriteTerminalForm;
-            HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
 
             Connect();
         }
@@ -66,18 +65,21 @@ namespace PowerMeterMonitor
             if (comboBoxBaudRate.Text.Length == 0) return;
             if (comboBoxSlaveID.Text.Length == 0) return;
 
-            VFDsettings.PortName = comboBoxComPort.Text;
-            VFDsettings.BaudRate = int.Parse(comboBoxBaudRate.Text);
-            VFDsettings.VFD_ModBusID = int.Parse(comboBoxSlaveID.Text);
+            _hyMotorControl = new MotorControl(baudRate: 38400, portName: comboBoxComPort.Text);
+            _hyMotorControl.HYmodbus.PortName = comboBoxComPort.Text;
+            _hyMotorControl.HYmodbus.BaudRate = int.Parse(comboBoxBaudRate.Text);
+            _hyMotorControl.HYmodbus.ModBusID = int.Parse(comboBoxSlaveID.Text);
+            _hyMotorControl.HYmodbus.OnWriteTerminalForm += HYmodbus_OnWriteTerminalForm;
+            _hyMotorControl.HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
 
-            if(HYmodbus.ComOpen)
-                HYmodbus.Disconnect();
+            if (_hyMotorControl.HYmodbus.ComOpen)
+                _hyMotorControl.HYmodbus.Disconnect();
 
             Thread.Sleep(100);
 
-            HYmodbus.Connect();
+            _hyMotorControl.HYmodbus.Connect();
 
-            if (HYmodbus.ComOpen)
+            if (_hyMotorControl.HYmodbus.ComOpen)
             {
                 labelConnectionStatus.Text = "Connected";
                 labelConnectionStatus.ForeColor = Color.Green;
@@ -91,14 +93,14 @@ namespace PowerMeterMonitor
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
-            if (!HYmodbus.ComOpen)
+            if (!_hyMotorControl.HYmodbus.ComOpen)
             {
                 MessageBox.Show("Connection not open");
                 return;
             }
 
-            VFDcontrol.CommandType selectedCommandType = (VFDcontrol.CommandType)Enum.Parse(typeof(VFDcontrol.CommandType), comboBoxCommandType.SelectedItem.ToString());
-            HYmodbus.SendCommand((byte)selectedCommandType, (byte)3, Convert.ToByte(textBoxData0.Text, 16), Convert.ToByte(textBoxData1.Text, 16), Convert.ToByte(textBoxData2.Text, 16));
+            CommandType selectedCommandType = (CommandType)Enum.Parse(typeof(CommandType), comboBoxCommandType.SelectedItem.ToString());
+            _hyMotorControl.HYmodbus.SendCommand((byte)selectedCommandType, (byte)3, Convert.ToByte(textBoxData0.Text, 16), Convert.ToByte(textBoxData1.Text, 16), Convert.ToByte(textBoxData2.Text, 16));
         }
 
         private void comboBoxComPort_SelectedIndexChanged(object sender, EventArgs e)

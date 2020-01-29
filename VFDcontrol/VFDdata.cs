@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace VFDcontrol
+namespace VfdControl
 {
     public class VFDdata
     {

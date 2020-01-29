@@ -5,41 +5,119 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 
-namespace VFDcontrol
+namespace VfdControl
 {
-    // for more information see also:
-    // https://github.com/bebro/linuxcnc-huanyang-vfd/blob/emc2/hy_modbus.c
-    public static class HYmodbus
+    public class HYmodbus
     {
-        private static Queue<byte[]> _commandQueue = new Queue<byte[]>();
-        private static Queue<int> _receivedQueue = new Queue<int>();
-        private static ManualResetEvent _spindleActive = new ManualResetEvent(true);
-        private static ManualResetEvent _dataReadyToRead = new ManualResetEvent(true);
-        private static int responseWaitTimeout = 100; // in milliseconds
-        public static bool DownloadUploadMode;
-        public static VFDdata VFDData = new VFDdata();
-        public static bool ComOpen { get; private set; }
-        
-        static HYmodbus()
+        private Queue<byte[]> _commandQueue = new Queue<byte[]>();
+        private Queue<int> _receivedQueue = new Queue<int>();
+        private ManualResetEvent _spindleActive = new ManualResetEvent(true);
+        private ManualResetEvent _dataReadyToRead = new ManualResetEvent(true);
+        public int ResponseWaitTimeout { get; set; }
+        public bool DownloadUploadMode;
+        public VFDdata VFDData = new VFDdata();
+        public bool ComOpen { get; private set; }
+        #region Events
+        public delegate void ProcessPollPacket(VFDdata data);
+        public delegate void WriteTerminalForm(string message, bool send);
+        public delegate void WriteLog(string message, bool error = false);
+        public event ProcessPollPacket OnProcessPollPacket;
+        public event WriteTerminalForm OnWriteTerminalForm;
+        public event WriteLog OnWriteLog;
+        #endregion
+        #region Profibus connection settings
+        /// <summary>Name of serial port to use.</summary>
+        public string PortName { get; set; }
+        /// <summary>Boud rate. Default is set to 38400.</summary>
+        public int BaudRate { get; set; }
+        /// <summary>Data bits. Default is set to 8.</summary>
+        public int DataBits { get; set; }
+        Parity _parity;
+        /// <summary>Parity. Default is set to None.</summary>
+        public int Parity { get { return (int)_parity; } set { _parity = (Parity)value; } }
+        StopBits _stopBits;
+        /// <summary>Stop bits. Default is set to One.</summary>
+        public int StopBits { get { return (int)_stopBits; } set { _stopBits = (StopBits)value; } }
+        /// <summary>Modbus id. Default is set to 1.</summary>
+        public int ModBusID { get; set; }
+        #endregion
+        /// <summary>
+        /// Constructor that setup Modbus and starts thread.
+        /// </summary>
+        /// <param name="portName">Name of serial port to use.</param>
+        /// <param name="baudRate">Boud rate. Default is set to 38400.</param>
+        /// <param name="dataBits">Data bits. Default is set to 8.</param>
+        /// <param name="parity">Parity. Default is set to None.</param>
+        /// <param name="stopBits">Stop bits. Default is set to One.</param>
+        /// <param name="modBusID">Modbus id. Default is set to 1.</param>
+        /// <param name="responseWaitTimeout">In milliseconds. Default is 100.</param>
+        public HYmodbus(string portName, int baudRate = 38400, int dataBits = 8, int parity = 0, int stopBits = 1, int modBusID = 1, int responseWaitTimeout = 100)
         {
             ComOpen = false;
             populateCRCTable();
+            this.PortName = portName;
+            this.BaudRate = baudRate;
+            this.DataBits = dataBits;
+            this.Parity = parity;
+            this.StopBits = stopBits;
+            this.ModBusID = modBusID;
+            this.ResponseWaitTimeout = responseWaitTimeout;
 
             new Thread(() => DoWork()).Start();
         }
 
-        public delegate void ProcessPollPacket(VFDdata data);
-        public delegate void WriteTerminalForm(string message, bool send);
-        public delegate void WriteLog(string message, bool error = false);
-        public static event ProcessPollPacket OnProcessPollPacket;
-        public static event WriteTerminalForm OnWriteTerminalForm;
-        public static event WriteLog OnWriteLog;
+        
 
         #region Public Methods
-
-        public static void Connect()
+        /// <summary>
+        /// Get list of settings in VFD.
+        /// </summary>
+        /// <returns>List of settings in VFD</returns>
+        public List<RegisterValue> GetRegisterValues()
+        {
+            var res = new List<RegisterValue>();
+            for (int i = 0; i < 200; i++)
+            {
+                try
+                {
+                    var result = this.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
+                    if (result != null)
+                    {
+                        result.Value = result.ToValue();
+                        res.Add(result);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnWriteLog(ex.Message, true);
+                }
+            }
+            return res;
+        }
+        /// <summary>
+        /// Set settings values in VFD.
+        /// </summary>
+        /// <param name="values">Vales to set in VFD.</param>
+        public void SetRegisterValues(List<RegisterValue> values)
+        {
+            foreach (var line in values.Where(x => x.DefaultValue != "Unknown"))
+            {
+                try
+                {
+                    var result = this.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.ID, line.data0, line.data1);
+                    OnWriteLog(result.ToString());
+                }
+                catch (Exception ex)
+                {
+                    OnWriteLog(ex.Message, true);
+                }
+            }
+        }
+        /// <summary>
+        /// Connect to VFD.
+        /// </summary>
+        public void Connect()
         {
             if(!ComOpen)
             {
@@ -50,10 +128,10 @@ namespace VFDcontrol
             InitialPoll();
         }
 
-        public static void InitialPollPowerMeter()
+        public void InitialPollPowerMeter()
         {
             byte[] packet = new byte[8];
-            packet[0] = (byte)VFDsettings.VFD_ModBusID;
+            packet[0] = (byte)this.ModBusID;
             packet[1] = (byte)CommandType.ReadControlData;
             packet[2] = (byte)CommandLength.Float;
             packet[4] = 0x00;
@@ -69,10 +147,10 @@ namespace VFDcontrol
             }
         }
 
-        public static void InitialPoll()
+        public void InitialPoll()
         {
             byte[] packet = new byte[6];
-            packet[0] = (byte)VFDsettings.VFD_ModBusID;
+            packet[0] = (byte)this.ModBusID;
             packet[1] = (byte)CommandType.ReadControlData;
             packet[2] = (byte)CommandLength.ThreeBytes;
             packet[3] = (byte)ControlDataType.OutF;
@@ -146,7 +224,7 @@ namespace VFDcontrol
 
         }
 
-        public static void Disconnect()
+        public void Disconnect()
         {
             _commandQueue.Clear();
             VFDData.SerialConnected = false;
@@ -154,22 +232,22 @@ namespace VFDcontrol
             Thread.Sleep(100);
         }
 
-        public static void StartPolling()
+        public void StartPolling()
         {
             DownloadUploadMode = false;
             _spindleActive.Set();
         }
 
-        public static RegisterValue SendCommand(CommandType commandType, byte register, int value)
+        public RegisterValue SendCommand(CommandType commandType, byte register, int value)
         {
             return SendCommand((byte)commandType, 3, register, (byte)(value & 0xFF), (byte)(value >> 8));
         }
 
-        public static RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, int register, byte _data1, byte _data2)
+        public RegisterValue SendCommand(byte selectedCommandType, byte selectedCommandLength, int register, byte _data1, byte _data2)
         {
             int packetLength = selectedCommandLength + 3;
             byte[] command = new byte[packetLength];
-            command[0] = (byte)VFDsettings.VFD_ModBusID;
+            command[0] = (byte)this.ModBusID;
             command[1] = selectedCommandType;
             command[2] = selectedCommandLength;
             command[3] = (byte)register;
@@ -182,7 +260,7 @@ namespace VFDcontrol
             };
         }
 
-        public static void SendDataAsync(byte[] dataToSend)
+        public void SendDataAsync(byte[] dataToSend)
         {
             lock (_commandQueue)
             {
@@ -191,7 +269,7 @@ namespace VFDcontrol
             _spindleActive.Set();
         }
 
-        public static int SendData(byte[] dataToSend)
+        public int SendData(byte[] dataToSend)
         {
             DownloadUploadMode = true;
             lock (_commandQueue)
@@ -202,7 +280,7 @@ namespace VFDcontrol
             _spindleActive.Set();
             for (int i = 0; i < 20; i++)
             {
-                Application.DoEvents();
+                //Application.DoEvents(); Code disabled for .net core
                 if (_receivedQueue.Any())
                     return _receivedQueue.Dequeue();
 
@@ -211,12 +289,10 @@ namespace VFDcontrol
 
             return 0;
         }
-
         #endregion
 
         #region Background Worker
-
-        private static void ProcessReceivedPacket(byte[] receivedPacket)
+        private void ProcessReceivedPacket(byte[] receivedPacket)
         {
             if (receivedPacket.Length == 0)
             {
@@ -224,7 +300,7 @@ namespace VFDcontrol
                 return;
             }
 
-            if (receivedPacket[0] != (byte)VFDsettings.VFD_ModBusID)
+            if (receivedPacket[0] != (byte)this.ModBusID)
                 return;
 
             if (receivedPacket.Length < 4)
@@ -233,7 +309,7 @@ namespace VFDcontrol
             string hexString = ByteArrayToHexString(receivedPacket);
             if (!CRCCheck(receivedPacket))
             {
-                OnWriteLog($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {hexString}", true);
+                OnWriteLog?.Invoke($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {hexString}", true);
                 return;
             }
 
@@ -267,14 +343,14 @@ namespace VFDcontrol
             }
         }
 
-        private static void PrintReceivedData(string text, double value)
+        private void PrintReceivedData(string text, double value)
         {
             string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - {text} = {value}";
-            OnWriteLog(message, false);
+            OnWriteLog?.Invoke(message, false);
             OnWriteTerminalForm?.Invoke(message, false);
         }
 
-        private static void PrintSendData(byte[] buffer)
+        private void PrintSendData(byte[] buffer)
         {
             int rawValue = Convert.ToInt32(buffer[buffer.Length - 3]);
             if (buffer.Length == 8)
@@ -283,21 +359,21 @@ namespace VFDcontrol
             }
 
             string message = $"{DateTime.Now.ToString("H:mm:ss.ff")} - Data sent : {ByteArrayToHexString(buffer)} ({rawValue})";
-            OnWriteLog(message, false);
+            OnWriteLog?.Invoke(message, false);
             OnWriteTerminalForm?.Invoke(message, true);
         }
 
-        static void DoWork()
+        void DoWork()
         {
-            if (VFDsettings.BaudRate == 0)
+            if (this.BaudRate == 0)
                 return; // VFD not connected
 
             SerialPort comPort = new SerialPort();
-            comPort.BaudRate = VFDsettings.BaudRate;
-            comPort.DataBits = VFDsettings.DataBits;
-            comPort.StopBits = VFDsettings.StopBits;
-            comPort.Parity = VFDsettings.Parity;
-            comPort.PortName = VFDsettings.PortName;
+            comPort.BaudRate = this.BaudRate;
+            comPort.DataBits = this.DataBits;
+            comPort.StopBits = _stopBits;
+            comPort.Parity = _parity;
+            comPort.PortName = this.PortName;
             //comPort.Handshake = Handshake.None;  // default
             //comPort.ReadTimeout = 2000;
             //comPort.WriteTimeout = 2000;
@@ -308,7 +384,7 @@ namespace VFDcontrol
             }
             catch (Exception)
             {
-                OnWriteLog($"Unable to open VFD serial port {comPort.PortName}, {comPort.BaudRate}", true);
+                OnWriteLog?.Invoke($"Unable to open VFD serial port {comPort.PortName}, {comPort.BaudRate}", true);
                 VFDData.SerialConnected = false;
                 return;
             }
@@ -316,13 +392,13 @@ namespace VFDcontrol
             if (comPort.IsOpen)
             {
                 ComOpen = true;
-                OnWriteLog($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}", false);
+                OnWriteLog?.Invoke($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}", false);
                 comPort.DataReceived += comPort_DataReceived;
                 VFDData.SerialConnected = true; // Report that the COM port has opened sucessfully
             }
 
             byte[] statusRequestPacket = new byte[6];
-            statusRequestPacket[0] = (byte)VFDsettings.VFD_ModBusID; // Slave address
+            statusRequestPacket[0] = (byte)this.ModBusID; // Slave address
             statusRequestPacket[1] = (byte)CommandType.ReadControlData; // Huanyang VFD Read Control Data
             statusRequestPacket[2] = (byte)CommandLength.ThreeBytes; // Number of bytes in request field
             statusRequestPacket[3] = 0x00; // Register byte - 0x00 = Set Frequency, 0x01 = Output Frequency, 0x02 = Output Amps, 0x03 = RPM
@@ -362,7 +438,7 @@ namespace VFDcontrol
                     }
                     catch (Exception ex)
                     {
-                        OnWriteLog("VFD Read / Write error: " + ex.ToString(), true);
+                        OnWriteLog?.Invoke("VFD Read / Write error: " + ex.ToString(), true);
                         return; // exit. 
                     }
                 }
@@ -372,9 +448,9 @@ namespace VFDcontrol
             ComOpen = false;
         }
 
-        private static byte[] CRCSign(byte[] byteArrayToSign) { return crc16byte(byteArrayToSign); }
+        private byte[] CRCSign(byte[] byteArrayToSign) { return crc16byte(byteArrayToSign); }
 
-        private static bool CRCCheck(byte[] byteArrayToCheck)
+        private bool CRCCheck(byte[] byteArrayToCheck)
         {
             var rawMessage = new byte[byteArrayToCheck.Length - 2];
             Buffer.BlockCopy(byteArrayToCheck, 0, rawMessage, 0, byteArrayToCheck.Length - 2); // Get the packet without the last two bytes (the existing CRC)
@@ -383,7 +459,7 @@ namespace VFDcontrol
             return validCRC;
         }
 
-        private static byte[] GetData(byte[] statusRequestPacket)
+        private byte[] GetData(byte[] statusRequestPacket)
         {
             lock (_commandQueue)
             {
@@ -405,12 +481,12 @@ namespace VFDcontrol
             }
         }
 
-        private static byte[] ReadData(SerialPort comPort, int expectedResponseLength)
+        private byte[] ReadData(SerialPort comPort, int expectedResponseLength)
         {
             byte[] dataReceived;
             // Wait for the expected number of bytes or timeout.
             int responseLoopTimeoutCount = 0;
-            while (comPort.BytesToRead < expectedResponseLength && responseLoopTimeoutCount < responseWaitTimeout / 10)
+            while (comPort.BytesToRead < expectedResponseLength && responseLoopTimeoutCount < ResponseWaitTimeout / 10)
             {
                 Thread.Sleep(10);
                 responseLoopTimeoutCount++;
@@ -423,7 +499,7 @@ namespace VFDcontrol
             return dataReceived;
         }
 
-        private static int GetResponseLength(byte secondByte)
+        private int GetResponseLength(byte secondByte)
         {
             switch (secondByte)
             {
@@ -433,7 +509,7 @@ namespace VFDcontrol
             }
         }
 
-        private static void ProcessControlData(int rawValue, byte cmdType)
+        private void ProcessControlData(int rawValue, byte cmdType)
         {
             switch (cmdType)
             {
@@ -461,7 +537,7 @@ namespace VFDcontrol
             }
         }
 
-        private static void ProcessInitData(int rawValue, byte cmdType, string hexString)
+        private void ProcessInitData(int rawValue, byte cmdType, string hexString)
         {
             switch (cmdType)
             {
@@ -530,10 +606,10 @@ namespace VFDcontrol
             }
 
             // if unknown command then print:
-            OnWriteLog($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {hexString} = {rawValue}", false);
+            OnWriteLog?.Invoke($"{DateTime.Now.ToString("H:mm:ss.ff")} - Initial poll packet = {hexString} = {rawValue}", false);
         }
 
-        private static void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void comPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             _dataReadyToRead.Set();
         }
@@ -542,7 +618,7 @@ namespace VFDcontrol
 
         #region Data Manipulation
 
-        private static byte[] HexStringToByteArray(string s)
+        private byte[] HexStringToByteArray(string s)
         {
             s = s.Replace(" ", "");
             byte[] buffer = new byte[s.Length / 2];
@@ -551,7 +627,7 @@ namespace VFDcontrol
             return buffer;
         }
 
-        private static string ByteArrayToHexString(byte[] data)
+        private string ByteArrayToHexString(byte[] data)
         {
             StringBuilder sb = new StringBuilder(data.Length * 3);
             foreach (byte b in data)
@@ -569,7 +645,7 @@ namespace VFDcontrol
         private static byte[] crc_table = new byte[512];
 
         #region Lookup Table
-        private static void populateCRCTable()
+        private void populateCRCTable()
         {
             crc_table[0] = 0x0;
             crc_table[1] = 0xC1;
@@ -1086,7 +1162,7 @@ namespace VFDcontrol
         } 
         #endregion
 
-        private static byte[] crc16byte(byte[] modbusframe_noCRC)
+        private byte[] crc16byte(byte[] modbusframe_noCRC)
         {
             int i;
             int index;

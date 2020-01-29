@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.Drawing;
+using VfdControl;
 
-namespace VFDcontrol
+namespace SpindleTalker2
 {
     public class FreqVoltChart
     {
@@ -13,11 +13,11 @@ namespace VFDcontrol
             float x1 = (float)(5 + (190 * data.MinFreq / data.MaxFreq));
             float x2 = (float)(5 + (190 * data.IntermediateFreq / data.MaxFreq));
             float x3 = (float)(5 + (190 * data.MaxFreq / data.MaxFreq));
-            float x4 = (float)(5 + (190 * data.OutFrequency * 4 / data.MaxFreq))-3;
-            float y1 = (float)(195 - (190 * data.MinVoltage/data.MaxVoltage));
+            float x4 = (float)(5 + (190 * data.OutFrequency * 4 / data.MaxFreq)) - 3;
+            float y1 = (float)(195 - (190 * data.MinVoltage / data.MaxVoltage));
             float y2 = (float)(195 - (190 * data.IntermediateVoltage / data.MaxVoltage));
             float y3 = (float)(195 - (190 * data.MaxVoltage / data.MaxVoltage));
-            float y4 = (float)(195 - (190 * data.OutVoltAC / data.MaxVoltage))-3;
+            float y4 = (float)(195 - (190 * data.OutVoltAC / data.MaxVoltage)) - 3;
 
 
             var bmp = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);

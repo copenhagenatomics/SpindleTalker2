@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using SpindleTalker2.Properties;
-using VFDcontrol;
+using VfdControl;
 
 namespace SpindleTalker2
 {
@@ -10,13 +10,13 @@ namespace SpindleTalker2
     {
         private MainWindow _mainWindow;
 
-        public MeterControl(MainWindow spindleTalkerBase)
+        public MeterControl(MainWindow mainWindow)
         {
             InitializeComponent();
-            _mainWindow = spindleTalkerBase;
-            HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
-            HYmodbus.VFDData.OnChanged += VFDdata_OnChanged;
-            MotorControl.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
+            _mainWindow = mainWindow;
+            mainWindow._hyMotorControl.HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
+            mainWindow._hyMotorControl.HYmodbus.VFDData.OnChanged += VFDdata_OnChanged;
+            mainWindow._hyMotorControl.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
         }
 
         private void HYmodbus_ProcessPollPacket(VFDdata data)
@@ -36,7 +36,7 @@ namespace SpindleTalker2
                 _mainWindow.toolStripStatusRPM.Image = toolstripImage;
                 MeterAmps.Value = data.OutAmp;
                 MeterVDC.Value = data.OutVoltDC;
-                MeterVAC.Value = HYmodbus.VFDData.OutVoltAC;
+                MeterVAC.Value = _mainWindow._hyMotorControl.HYmodbus.VFDData.OutVoltAC;
             }
         }
 

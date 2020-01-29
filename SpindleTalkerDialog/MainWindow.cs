@@ -10,9 +10,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using SpindleTalker2.Properties;
-using VFDcontrol;
 using System.IO;
 using System.Diagnostics;
+using VfdControl;
 
 namespace SpindleTalker2
 {
@@ -23,12 +23,11 @@ namespace SpindleTalker2
 
         private int howLongToWait = 5000;
         private MeterControl _meterControl;
+        public MotorControl _hyMotorControl;
 
         public MainWindow()
         {
             InitializeComponent();
-            HYmodbus.VFDData.OnSerialPortConnected += COMPortStatus;
-            HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
         }
 
         private void HYmodbus_OnWriteLog(string message, bool error = false)
@@ -36,14 +35,29 @@ namespace SpindleTalker2
             Debug.Print(message);
         }
 
-        private System.Diagnostics.Stopwatch stopWatchInitialPoll = new System.Diagnostics.Stopwatch();
+        private Stopwatch stopWatchInitialPoll = new Stopwatch();
 
         private void SpindleTalker_Load(object sender, EventArgs e)
         {
             ChangeGtrackbarColours(false);
 
+            if (SerialPort.GetPortNames().Length == 0)
+            {
+                this.Show();
+                MessageBox.Show(this, "There are no COM Ports detected on this computer.\nPlease install a COM Port and restart this app.", "No COM Ports Installed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                COMPortStatus(false);
+                return;
+            }
+
+            _hyMotorControl = new MotorControl(baudRate: 38400, portName: VFDsettings.PortName);
+            _hyMotorControl.HYmodbus.PortName = VFDsettings.PortName;
+            _hyMotorControl.HYmodbus.BaudRate = VFDsettings.BaudRate;
+            _hyMotorControl.HYmodbus.ModBusID = VFDsettings.VFD_ModBusID;
+            _hyMotorControl.HYmodbus.VFDData.OnSerialPortConnected += COMPortStatus;
+            _hyMotorControl.HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
+
             var settingsForm = new SettingsControl(this);
-            var terminalForm = new TerminalControl(settingsForm);
+            var terminalForm = new TerminalControl(this, settingsForm.csvSeperator);
             _meterControl = new MeterControl(this);
             panelMain.Controls.AddRange(new Control[] {_meterControl, terminalForm, settingsForm });
             foreach (Control ctrl in panelMain.Controls)
@@ -65,17 +79,9 @@ namespace SpindleTalker2
             this.Width = 1500;
             this.Height = 700;
 
-            if (SerialPort.GetPortNames().Length == 0)
-            {
-                this.Show();
-                MessageBox.Show(this, "There are no COM Ports detected on this computer.\nPlease install a COM Port and restart this app.", "No COM Ports Installed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                COMPortStatus(false);
-                return;
-            }
-
             if (VFDsettings.AutoConnectAtStartup)
             {
-                HYmodbus.Connect();
+                _hyMotorControl.HYmodbus.Connect();
                 timerInitialPoll.Start();
                 stopWatchInitialPoll.Start();
             }
@@ -131,27 +137,27 @@ namespace SpindleTalker2
 
         private void buttonConnect_Click(object sender, EventArgs e)
         {
-            if (HYmodbus.VFDData.SerialConnected)
+            if (_hyMotorControl.HYmodbus.VFDData.SerialConnected)
             {
                 if(_meterControl.MeterRPM.Value > 0)
                     if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to disconnect?", 
                         "Spindle still running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
                             != System.Windows.Forms.DialogResult.Yes) return;
-                
-                HYmodbus.Disconnect();
+
+                _hyMotorControl.HYmodbus.Disconnect();
                 Thread.Sleep(500);
                 _meterControl.ZeroAll();
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxQuickSets.Enabled = false;
                 ChangeGtrackbarColours(false);
-                HYmodbus.VFDData.Clear();
+                _hyMotorControl.HYmodbus.VFDData.Clear();
                 toolStripStatusRPM.Text = "Current RPM Unknown (Not Connected)";
                 toolStripStatusRPM.Image = Resources.orangeLED;
             }
             else
             {
-                HYmodbus.Connect();
+                _hyMotorControl.HYmodbus.Connect();
                 stopWatchInitialPoll.Reset();
                 stopWatchInitialPoll.Start();
                 
@@ -162,7 +168,7 @@ namespace SpindleTalker2
 
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            MotorControl.Start((checkBoxReverse.Checked ? SpindleDirection.Backwards : SpindleDirection.Forward));
+            _hyMotorControl.Start((checkBoxReverse.Checked ? SpindleDirection.Backwards : SpindleDirection.Forward));
             buttonStart.Enabled = false;
             buttonStop.Enabled = true;
             groupBoxSpindleSpeed.Enabled = true;
@@ -173,7 +179,7 @@ namespace SpindleTalker2
 
         private void buttonStop_Click(object sender, EventArgs e)
         {
-            MotorControl.Stop();
+            _hyMotorControl.Stop();
             buttonStart.Enabled = true;
             buttonStop.Enabled = false;
             groupBoxSpindleSpeed.Enabled = false;
@@ -216,7 +222,7 @@ namespace SpindleTalker2
                     return;
                 }
             }
-            HYmodbus.Disconnect();
+            _hyMotorControl.HYmodbus.Disconnect();
 
             VFDsettings.Save();
         }
@@ -230,19 +236,19 @@ namespace SpindleTalker2
             else
             {
                 toolStripStatusLabelComPort.Image = (connected ? Resources.greenLED : Resources.redLED);
-                toolStripStatusLabelComPort.Text = VFDsettings.PortName + (connected ? " (connected)" : " (disconnected)");
+                toolStripStatusLabelComPort.Text = _hyMotorControl.HYmodbus.PortName + (connected ? " (connected)" : " (disconnected)");
                 toolStripStatusLabelVFDStatus.Image = Resources.orangeLED;
                 toolStripStatusLabelVFDStatus.Text = (connected ? "VFD polling" : "VFD Disconnected");
                 buttonConnect.Image = (connected ? Resources.connect2 : Resources.disconnect2);
                 string status = (connected ? "opened" : "closed");
-                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, VFDsettings.PortName, status));
+                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, _hyMotorControl.HYmodbus.PortName, status));
             }
         }
 
         private void gTrackBarSpindleSpeed_ValueChanged(object sender, EventArgs e)
         {
-            if (gTrackBarSpindleSpeed.Value < HYmodbus.VFDData.MinRPM) gTrackBarSpindleSpeed.Value = HYmodbus.VFDData.MinRPM;
-            MotorControl.SetRPM(gTrackBarSpindleSpeed.Value);
+            if (gTrackBarSpindleSpeed.Value < _hyMotorControl.HYmodbus.VFDData.MinRPM) gTrackBarSpindleSpeed.Value = _hyMotorControl.HYmodbus.VFDData.MinRPM;
+            _hyMotorControl.SetRPM(gTrackBarSpindleSpeed.Value);
         }
 
         // I like this open source trackbar control but it doesn't implement being greyed out when disabled 
@@ -284,7 +290,7 @@ namespace SpindleTalker2
 
         private void timerInitialPoll_Tick(object sender, EventArgs e)
         {
-            if (HYmodbus.VFDData.InitDataOK())
+            if (_hyMotorControl.HYmodbus.VFDData.InitDataOK())
             {
                 timerInitialPoll.Stop();
                 PopulateQuickSets();
@@ -321,9 +327,9 @@ namespace SpindleTalker2
                     }
                     else
                     {
-                        HYmodbus.Disconnect();
+                        _hyMotorControl.HYmodbus.Disconnect();
                         int i = 0;
-                        while(i++ < 100 && HYmodbus.ComOpen)
+                        while(i++ < 100 && _hyMotorControl.HYmodbus.ComOpen)
                         {
                             Thread.Sleep(50);
                         }

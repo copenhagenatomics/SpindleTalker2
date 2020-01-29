@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Windows.Forms;
 
-namespace VFDcontrol
+namespace VfdControl
 {
     public class RegisterValue
     {
@@ -55,7 +52,7 @@ namespace VFDcontrol
             }
         }
 
-        private string ToValue()
+        public string ToValue()
         {
             switch(Type)
             {
@@ -303,56 +300,6 @@ namespace VFDcontrol
                     default: return "Unknown";
                 }
             }
-        }
-
-        public static bool Upload(string fileName, char csvSeperator)
-        {
-            var lines = LoadCsv(fileName, csvSeperator);
-            if (lines != null)
-            {
-                Debug.Print("================== Startin upload ======================");
-                foreach (var line in lines.Where(x => x.DefaultValue != "Unknown"))
-                {
-                    try
-                    {
-                        Debug.Print(line.ToString());
-                        var result = HYmodbus.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.ID, line.data0, line.data1);
-                        // Debug.Print(result.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Print(ex.ToString());
-                    }
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static void Download(string fileName, char seperator)
-        {
-            var lines = new List<string>();
-            lines.Add(Header(seperator));
-            for (int i = 0; i < 200; i++)
-            {
-                try
-                {
-                    var result = HYmodbus.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
-                    if (result != null)
-                    {
-                        result.Value = result.ToValue();
-                        lines.Add(result.ToString(seperator));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Print(ex.ToString());
-                }
-            }
-
-            File.WriteAllLines(fileName, lines);
         }
 
         public string DefaultValue
@@ -897,21 +844,21 @@ namespace VFDcontrol
                     var row = line.Split(new char[] { seperator }, StringSplitOptions.RemoveEmptyEntries).ToList();
                     if (row.Count() != ColumnCount)
                     {
-                        MessageBox.Show("Invalid column count in row:" + line);
+                        Console.WriteLine("Invalid column count in row:");
                         return null;
                     }
 
                     var item = new RegisterValue(int.Parse(row[0]));
                     item.Value = row[1];
-                    if (item.Type != row[3]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Type} <> {row[3]}");
-                    if (item.Unit != row[5]) MessageBox.Show($"ID: {item.ID} has wrong type: {item.Unit} <> {row[5]}");
+                    if (item.Type != row[3]) Console.WriteLine($"ID: {item.ID} has wrong type: {item.Type} <> {row[3]}");
+                    if (item.Unit != row[5]) Console.WriteLine($"ID: {item.ID} has wrong type: {item.Unit} <> {row[5]}");
                     result.Add(item);
                 }
 
                 return result;
             }
 
-            MessageBox.Show("Invalid column headers");
+            Console.WriteLine("Invalid column headers");
             return null;
         }
     }

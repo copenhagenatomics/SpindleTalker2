@@ -6,25 +6,16 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using VFDcontrol;
 
 namespace SpindleTalker2
 {
     public partial class TerminalControl : UserControl
     {
-        public TerminalControl(SettingsControl settingsControl)
+        public TerminalControl(MainWindow mainWindow, char csvSeperator)
         {
-            this.commandBuilder1 = new UserControls.CommandBuilder(this, settingsControl);
+            this.commandBuilder1 = new UserControls.CommandBuilder(this, mainWindow, csvSeperator);
             InitializeComponent();
-            HYmodbus.OnWriteTerminalForm += Serial_WriteTerminalForm;
-        }
-
-        private static bool IsValidHexString(IEnumerable<char> hexString)
-        {
-            return hexString.Select(currentCharacter =>
-                        (currentCharacter >= '0' && currentCharacter <= '9') ||
-                        (currentCharacter >= 'a' && currentCharacter <= 'f') ||
-                        (currentCharacter >= 'A' && currentCharacter <= 'F')).All(isHexCharacter => isHexCharacter);
+            mainWindow._hyMotorControl.HYmodbus.OnWriteTerminalForm += Serial_WriteTerminalForm;
         }
 
         private void Serial_WriteTerminalForm(string message, bool send)

@@ -1,9 +1,7 @@
-﻿// adapted from http://www.cnczone.com/forums/phase-converters/91847-huanyang-vfd-rs485-modbus-7.html
-// Credit - user ScottA
+﻿using System;
+using System.IO.Ports;
 
-using System;
-
-namespace VFDcontrol
+namespace VfdControl
 {
     [Flags]
     public enum CommandType
@@ -86,5 +84,4 @@ namespace VFDcontrol
 
 
     }
-
 }

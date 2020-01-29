@@ -1,31 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
-using System.Threading;
-using System.Diagnostics;
-using VFDcontrol;
+using VfdControl;
 
 namespace SpindleTalker2.UserControls
 {
     public partial class CommandBuilder : UserControl
     {
         private TerminalControl _terminalForm;
-        private SettingsControl _settingsForm;
+        private MainWindow _mainWindow;
+        private char _csvSeperator;
 
-        public CommandBuilder(TerminalControl terminalControl, SettingsControl settingsControl)
+        public CommandBuilder(TerminalControl terminalControl, MainWindow mainWindow, char csvSeperator)
         {
             _terminalForm = terminalControl;
-            _settingsForm = settingsControl;
+            _mainWindow = mainWindow;
+            _csvSeperator = csvSeperator;
             InitializeComponent();
 
-            cbCommandType.Items.Clear(); cbCommandType.Items.AddRange(Enum.GetNames(typeof(VFDcontrol.CommandType)));
+            cbCommandType.Items.Clear(); cbCommandType.Items.AddRange(Enum.GetNames(typeof(CommandType)));
             cbCommandLength.Items.Clear(); cbCommandLength.Items.AddRange(Enum.GetNames(typeof(CommandLength)));
             labelSlaveID.Text = VFDsettings.VFD_ModBusID.ToString();
 
@@ -36,10 +28,10 @@ namespace SpindleTalker2.UserControls
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
-            VFDcontrol.CommandType selectedCommandType = (VFDcontrol.CommandType)Enum.Parse(typeof(VFDcontrol.CommandType), cbCommandType.SelectedItem.ToString());
+            CommandType selectedCommandType = (CommandType)Enum.Parse(typeof(CommandType), cbCommandType.SelectedItem.ToString());
             CommandLength selectedCommandLength = (CommandLength)Enum.Parse(typeof(CommandLength), cbCommandLength.SelectedItem.ToString());
 
-            HYmodbus.SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
+            _mainWindow._hyMotorControl.HYmodbus.SendCommand((byte)selectedCommandType, (byte)selectedCommandLength, (byte)data0.Value, Convert.ToByte(data1.Text, 16), Convert.ToByte(data2.Text, 16));
         }
 
 
@@ -88,8 +80,8 @@ namespace SpindleTalker2.UserControls
             dialog.Filter = "csv file |*.csv";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                RegisterValue.Download(dialog.FileName, _settingsForm.csvSeperator);
-                HYmodbus.StartPolling();
+                _mainWindow._hyMotorControl.Download(dialog.FileName, _csvSeperator);
+                _mainWindow._hyMotorControl.HYmodbus.StartPolling();
                 MessageBox.Show("Finished downloading all values to file");
             }
         }
@@ -105,12 +97,12 @@ namespace SpindleTalker2.UserControls
             {
                 try
                 {
-                    if(RegisterValue.Upload(dialog.FileName, _settingsForm.csvSeperator))
+                    if(_mainWindow._hyMotorControl.Upload(dialog.FileName, _csvSeperator))
                     { 
                         MessageBox.Show("Finished uploading all values to VFD");
                     }
 
-                    HYmodbus.StartPolling();
+                    _mainWindow._hyMotorControl.HYmodbus.StartPolling();
                 }
                 catch (Exception ex)
                 {
