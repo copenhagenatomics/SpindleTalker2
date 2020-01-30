@@ -2,10 +2,30 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Huanyang.VfdControl</PackageId>
+    <Authors>Thomas Jam Pedersen + others</Authors>
+    <Company>Copenhagen Atomics</Company>
+    <Product>Huanyang VfdControl</Product>
+    <Description>With this package you can control your Huanyang from Raspberry Pi or any other computer.</Description>
+    <PackageLicenseFile>MIT license.txt</PackageLicenseFile>
+    <PackageTags>Huanyang, VFD, AC motor control</PackageTags>
+    <Copyright>Copenhagen Atomics</Copyright>
+    <PackageProjectUrl>https://github.com/copenhagenatomics/SpindleTalker2</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/copenhagenatomics/SpindleTalker2</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>English</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="MIT license.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
   
 </Project>
