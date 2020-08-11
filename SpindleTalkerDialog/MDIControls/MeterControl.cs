@@ -14,8 +14,8 @@ namespace SpindleTalker2
         {
             InitializeComponent();
             _mainWindow = mainWindow;
-            mainWindow._hyMotorControl.HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
-            mainWindow._hyMotorControl.HYmodbus.VFDData.OnChanged += VFDdata_OnChanged;
+            mainWindow._hyMotorControl._hyModbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
+            mainWindow._hyMotorControl._hyModbus.VFDData.OnChanged += VFDdata_OnChanged;
             mainWindow._hyMotorControl.OnSpindleShuttingDown += Spindle_OnSpindleShuttingDown;
         }
 
@@ -36,7 +36,7 @@ namespace SpindleTalker2
                 _mainWindow.toolStripStatusRPM.Image = toolstripImage;
                 MeterAmps.Value = data.OutAmp;
                 MeterVDC.Value = data.OutVoltDC;
-                MeterVAC.Value = _mainWindow._hyMotorControl.HYmodbus.VFDData.OutVoltAC;
+                MeterVAC.Value = _mainWindow._hyMotorControl._hyModbus.VFDData.OutVoltAC;
             }
         }
 

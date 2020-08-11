@@ -50,11 +50,11 @@ namespace SpindleTalker2
             }
 
             _hyMotorControl = new MotorControl(baudRate: 38400, portName: VFDsettings.PortName);
-            _hyMotorControl.HYmodbus.PortName = VFDsettings.PortName;
-            _hyMotorControl.HYmodbus.BaudRate = VFDsettings.BaudRate;
-            _hyMotorControl.HYmodbus.ModBusID = VFDsettings.VFD_ModBusID;
-            _hyMotorControl.HYmodbus.VFDData.OnSerialPortConnected += COMPortStatus;
-            _hyMotorControl.HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
+            _hyMotorControl._hyModbus.PortName = VFDsettings.PortName;
+            _hyMotorControl._hyModbus.BaudRate = VFDsettings.BaudRate;
+            _hyMotorControl._hyModbus.ModBusID = VFDsettings.VFD_ModBusID;
+            _hyMotorControl._hyModbus.VFDData.OnSerialPortConnected += COMPortStatus;
+            _hyMotorControl._hyModbus.OnWriteLog += HYmodbus_OnWriteLog;
 
             var settingsForm = new SettingsControl(this);
             var terminalForm = new TerminalControl(this, settingsForm.csvSeperator);
@@ -81,7 +81,7 @@ namespace SpindleTalker2
 
             if (VFDsettings.AutoConnectAtStartup)
             {
-                _hyMotorControl.HYmodbus.Connect();
+                _hyMotorControl._hyModbus.Connect();
                 timerInitialPoll.Start();
                 stopWatchInitialPoll.Start();
             }
@@ -137,27 +137,27 @@ namespace SpindleTalker2
 
         private void buttonConnect_Click(object sender, EventArgs e)
         {
-            if (_hyMotorControl.HYmodbus.VFDData.SerialConnected)
+            if (_hyMotorControl._hyModbus.VFDData.SerialConnected)
             {
                 if(_meterControl.MeterRPM.Value > 0)
                     if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to disconnect?", 
                         "Spindle still running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
                             != System.Windows.Forms.DialogResult.Yes) return;
 
-                _hyMotorControl.HYmodbus.Disconnect();
+                _hyMotorControl._hyModbus.Disconnect();
                 Thread.Sleep(500);
                 _meterControl.ZeroAll();
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxSpindleControl.Enabled = false;
                 groupBoxQuickSets.Enabled = false;
                 ChangeGtrackbarColours(false);
-                _hyMotorControl.HYmodbus.VFDData.Clear();
+                _hyMotorControl._hyModbus.VFDData.Clear();
                 toolStripStatusRPM.Text = "Current RPM Unknown (Not Connected)";
                 toolStripStatusRPM.Image = Resources.orangeLED;
             }
             else
             {
-                _hyMotorControl.HYmodbus.Connect();
+                _hyMotorControl._hyModbus.Connect();
                 stopWatchInitialPoll.Reset();
                 stopWatchInitialPoll.Start();
                 
@@ -222,7 +222,7 @@ namespace SpindleTalker2
                     return;
                 }
             }
-            _hyMotorControl.HYmodbus.Disconnect();
+            _hyMotorControl._hyModbus.Disconnect();
 
             VFDsettings.Save();
         }
@@ -236,18 +236,18 @@ namespace SpindleTalker2
             else
             {
                 toolStripStatusLabelComPort.Image = (connected ? Resources.greenLED : Resources.redLED);
-                toolStripStatusLabelComPort.Text = _hyMotorControl.HYmodbus.PortName + (connected ? " (connected)" : " (disconnected)");
+                toolStripStatusLabelComPort.Text = _hyMotorControl._hyModbus.PortName + (connected ? " (connected)" : " (disconnected)");
                 toolStripStatusLabelVFDStatus.Image = Resources.orangeLED;
                 toolStripStatusLabelVFDStatus.Text = (connected ? "VFD polling" : "VFD Disconnected");
                 buttonConnect.Image = (connected ? Resources.connect2 : Resources.disconnect2);
                 string status = (connected ? "opened" : "closed");
-                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, _hyMotorControl.HYmodbus.PortName, status));
+                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, _hyMotorControl._hyModbus.PortName, status));
             }
         }
 
         private void gTrackBarSpindleSpeed_ValueChanged(object sender, EventArgs e)
         {
-            if (gTrackBarSpindleSpeed.Value < _hyMotorControl.HYmodbus.VFDData.MinRPM) gTrackBarSpindleSpeed.Value = _hyMotorControl.HYmodbus.VFDData.MinRPM;
+            if (gTrackBarSpindleSpeed.Value < _hyMotorControl._hyModbus.VFDData.MinRPM) gTrackBarSpindleSpeed.Value = _hyMotorControl._hyModbus.VFDData.MinRPM;
             _hyMotorControl.SetRPM(gTrackBarSpindleSpeed.Value);
         }
 
@@ -290,7 +290,7 @@ namespace SpindleTalker2
 
         private void timerInitialPoll_Tick(object sender, EventArgs e)
         {
-            if (_hyMotorControl.HYmodbus.VFDData.InitDataOK())
+            if (_hyMotorControl._hyModbus.VFDData.InitDataOK())
             {
                 timerInitialPoll.Stop();
                 PopulateQuickSets();
@@ -327,9 +327,9 @@ namespace SpindleTalker2
                     }
                     else
                     {
-                        _hyMotorControl.HYmodbus.Disconnect();
+                        _hyMotorControl._hyModbus.Disconnect();
                         int i = 0;
-                        while(i++ < 100 && _hyMotorControl.HYmodbus.ComOpen)
+                        while(i++ < 100 && _hyMotorControl._hyModbus.ComOpen)
                         {
                             Thread.Sleep(50);
                         }

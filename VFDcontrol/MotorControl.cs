@@ -15,7 +15,7 @@ namespace VfdControl
         public string[] ParityNames { get { return Enum.GetNames(typeof(Parity)); } private set { } }
         /// <summary>Get array with StopBit names.</summary>
         public string[] StopBitNames { get { return Enum.GetNames(typeof(StopBits)); } private set { } }
-        public HYmodbus HYmodbus { get; set; }
+        public HYmodbus _hyModbus { get; set; }
         #region Control packet definitions
         private byte[] ReadCurrentSetF { get; set; }
         private byte[] RunForward { get; set; }
@@ -47,7 +47,7 @@ namespace VfdControl
             this.RunForward = new byte[] { (byte)modBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Fwd };
             this.RunBack = new byte[] { (byte)modBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Run_Rev };
             this.StopSpindle = new byte[] { (byte)modBusID, (byte)CommandType.WriteControlData, (byte)CommandLength.OneByte, (byte)ControlCommands.Stop };
-            HYmodbus = new HYmodbus(portName, baudRate, dataBits, parity, stopBits, modBusID, responseWaitTimeout);
+            _hyModbus = new HYmodbus(portName, baudRate, dataBits, parity, stopBits, modBusID, responseWaitTimeout);
         }
         /// <summary>
         /// Start the motor.
@@ -65,20 +65,20 @@ namespace VfdControl
             //    spindles. The CRC is added as part of the SendData() method. 
             //
 
-            HYmodbus.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
-            SetFrequency(HYmodbus.VFDData.MinFreq); 
+            _hyModbus.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
+            SetFrequency(_hyModbus.VFDData.MinFreq); 
 
             // For future testing, the spindle reverse function doesn't appear to be working
-            HYmodbus.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
+            _hyModbus.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
 
-            HYmodbus.StartPolling();
+            _hyModbus.StartPolling();
         }
         /// <summary>
         /// Stop the motor.
         /// </summary>
         public void Stop()
         {
-            HYmodbus.SendDataAsync(StopSpindle);
+            _hyModbus.SendDataAsync(StopSpindle);
             OnSpindleShuttingDown?.Invoke(true);
             Thread.Yield();
             SetRPM(0);
@@ -94,7 +94,7 @@ namespace VfdControl
         /// <param name="targetRPM"></param>
         public void SetRPM(int targetRPM)
         {
-            double targetFrequency = (double)targetRPM / HYmodbus.VFDData.MaxRPM * HYmodbus.VFDData.MaxFreq;
+            double targetFrequency = (double)targetRPM / _hyModbus.VFDData.MaxRPM * _hyModbus.VFDData.MaxFreq;
             SetFrequency(targetFrequency);
         }
         /// <summary>
@@ -106,20 +106,20 @@ namespace VfdControl
             //   Check that the target frequency does not exceed the maximum or minumum values for the VFD and/or
             //   spindle. I assume that the VFD will ignore values above max (haven't tested) but values below the
             //   minumum recommended frequency for air-cooled spindles can cause major overheating issues.
-            if (targetFrequency < HYmodbus.VFDData.MinFreq) targetFrequency = HYmodbus.VFDData.MinFreq;
-            else if (targetFrequency > HYmodbus.VFDData.MaxFreq) targetFrequency = HYmodbus.VFDData.MaxFreq;
+            if (targetFrequency < _hyModbus.VFDData.MinFreq) targetFrequency = _hyModbus.VFDData.MinFreq;
+            else if (targetFrequency > _hyModbus.VFDData.MaxFreq) targetFrequency = _hyModbus.VFDData.MaxFreq;
 
             int frequency = (int)targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz
 
             // Construct the control packet
             byte[] controlPacket = new byte[5];
-            controlPacket[0] = (byte)HYmodbus.ModBusID;
+            controlPacket[0] = (byte)_hyModbus.ModBusID;
             controlPacket[1] = (byte)CommandType.WriteInverterFrequencyData;
             controlPacket[2] = (byte)CommandLength.TwoBytes;
             controlPacket[3] = (byte)(frequency >> 8); // Bitshift right to get bits nine to 16 of the int32 value
             controlPacket[4] = (byte)frequency; // returns the eight Least Significant Bits (LSB) of the int32 value
 
-            HYmodbus.SendDataAsync(controlPacket);
+            _hyModbus.SendDataAsync(controlPacket);
         }
 
         public bool Upload(string fileName, char csvSeperator)
@@ -133,7 +133,7 @@ namespace VfdControl
                     try
                     {
                         Console.WriteLine(line.ToString());
-                        var result = HYmodbus.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.ID, line.data0, line.data1);
+                        var result = _hyModbus.SendCommand((byte)CommandType.FunctionWrite, (byte)line.CommandLength, line.ID, line.data0, line.data1);
                         // Console.WriteLine(result.ToString());
                     }
                     catch (Exception ex)
@@ -156,7 +156,7 @@ namespace VfdControl
             {
                 try
                 {
-                    var result = HYmodbus.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
+                    var result = _hyModbus.SendCommand((byte)CommandType.FunctionRead, 1, (byte)i, 0, 0);
                     if (result != null)
                     {
                         result.Value = result.ToValue();

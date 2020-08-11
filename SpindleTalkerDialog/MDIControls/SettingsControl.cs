@@ -17,8 +17,8 @@ namespace SpindleTalker2
             csvSeperator = ';';
             _mainWindow = mainWindow;
             comboBoxCSV.SelectedText = csvSeperator.ToString();
-            mainWindow._hyMotorControl.HYmodbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
-            mainWindow._hyMotorControl.HYmodbus.VFDData.OnChanged += VFDData_OnChanged;
+            mainWindow._hyMotorControl._hyModbus.OnProcessPollPacket += HYmodbus_ProcessPollPacket;
+            mainWindow._hyMotorControl._hyModbus.VFDData.OnChanged += VFDData_OnChanged;
         }
 
         private void SettingsForm_Load(object sender, EventArgs e)
@@ -96,7 +96,7 @@ namespace SpindleTalker2
         private void cmbPortName_SelectedIndexChanged(object sender, EventArgs e)
         {
             VFDsettings.PortName = cmbPortName.SelectedItem.ToString();
-            _mainWindow.COMPortStatus(_mainWindow._hyMotorControl.HYmodbus.VFDData.SerialConnected);
+            _mainWindow.COMPortStatus(_mainWindow._hyMotorControl._hyModbus.VFDData.SerialConnected);
         }
 
         private void checkBoxAutoConnectAtStartup_CheckedChanged(object sender, EventArgs e)
@@ -114,7 +114,7 @@ namespace SpindleTalker2
         private void buttonResetVFD_Click(object sender, EventArgs e)
         {
             byte[] factoryReset = new byte[] { (byte)VFDsettings.VFD_ModBusID, (byte)CommandType.FunctionWrite, (byte)CommandLength.TwoBytes, 0x13, 0x08 };
-            _mainWindow._hyMotorControl.HYmodbus.SendDataAsync(factoryReset);
+            _mainWindow._hyMotorControl._hyModbus.SendDataAsync(factoryReset);
         }
 
         private void comboBoxCSV_SelectedIndexChanged(object sender, EventArgs e)

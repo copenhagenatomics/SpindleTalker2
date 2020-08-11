@@ -66,20 +66,20 @@ namespace PowerMeterMonitor
             if (comboBoxSlaveID.Text.Length == 0) return;
 
             _hyMotorControl = new MotorControl(baudRate: 38400, portName: comboBoxComPort.Text);
-            _hyMotorControl.HYmodbus.PortName = comboBoxComPort.Text;
-            _hyMotorControl.HYmodbus.BaudRate = int.Parse(comboBoxBaudRate.Text);
-            _hyMotorControl.HYmodbus.ModBusID = int.Parse(comboBoxSlaveID.Text);
-            _hyMotorControl.HYmodbus.OnWriteTerminalForm += HYmodbus_OnWriteTerminalForm;
-            _hyMotorControl.HYmodbus.OnWriteLog += HYmodbus_OnWriteLog;
+            _hyMotorControl._hyModbus.PortName = comboBoxComPort.Text;
+            _hyMotorControl._hyModbus.BaudRate = int.Parse(comboBoxBaudRate.Text);
+            _hyMotorControl._hyModbus.ModBusID = int.Parse(comboBoxSlaveID.Text);
+            _hyMotorControl._hyModbus.OnWriteTerminalForm += HYmodbus_OnWriteTerminalForm;
+            _hyMotorControl._hyModbus.OnWriteLog += HYmodbus_OnWriteLog;
 
-            if (_hyMotorControl.HYmodbus.ComOpen)
-                _hyMotorControl.HYmodbus.Disconnect();
+            if (_hyMotorControl._hyModbus.ComOpen)
+                _hyMotorControl._hyModbus.Disconnect();
 
             Thread.Sleep(100);
 
-            _hyMotorControl.HYmodbus.Connect();
+            _hyMotorControl._hyModbus.Connect();
 
-            if (_hyMotorControl.HYmodbus.ComOpen)
+            if (_hyMotorControl._hyModbus.ComOpen)
             {
                 labelConnectionStatus.Text = "Connected";
                 labelConnectionStatus.ForeColor = Color.Green;
@@ -93,14 +93,14 @@ namespace PowerMeterMonitor
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
-            if (!_hyMotorControl.HYmodbus.ComOpen)
+            if (!_hyMotorControl._hyModbus.ComOpen)
             {
                 MessageBox.Show("Connection not open");
                 return;
             }
 
             CommandType selectedCommandType = (CommandType)Enum.Parse(typeof(CommandType), comboBoxCommandType.SelectedItem.ToString());
-            _hyMotorControl.HYmodbus.SendCommand((byte)selectedCommandType, (byte)3, Convert.ToByte(textBoxData0.Text, 16), Convert.ToByte(textBoxData1.Text, 16), Convert.ToByte(textBoxData2.Text, 16));
+            _hyMotorControl._hyModbus.SendCommand((byte)selectedCommandType, (byte)3, Convert.ToByte(textBoxData0.Text, 16), Convert.ToByte(textBoxData1.Text, 16), Convert.ToByte(textBoxData2.Text, 16));
         }
 
         private void comboBoxComPort_SelectedIndexChanged(object sender, EventArgs e)

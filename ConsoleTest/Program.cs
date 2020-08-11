@@ -20,7 +20,7 @@ namespace ConsoleTest
                 if (_motorControl != null)
                 {
                     // Get settings that from VFD and save them to a file
-                    var settings = _motorControl.HYmodbus.GetRegisterValues();
+                    var settings = _motorControl._hyModbus.GetRegisterValues();
                     using (StreamWriter writetext = new StreamWriter("settings.csv"))
                     {
                         foreach (var item in settings)
@@ -34,7 +34,7 @@ namespace ConsoleTest
                     for (int i = 0; i < 20; i++)
                     {
                         Thread.Sleep(1000);
-                        Console.WriteLine(_motorControl.HYmodbus.VFDData.ToString());
+                        Console.WriteLine(_motorControl._hyModbus.VFDData.ToString());
                     }
                 }
             }
@@ -68,20 +68,20 @@ namespace ConsoleTest
                 SerialPort sp = new SerialPort(_port, 38400);
                 sp.Close();
                 var MotorControl = new MotorControl(baudRate: 38400, portName: _port);
-                MotorControl.HYmodbus.OnWriteTerminalForm += Serial_Write;
-                MotorControl.HYmodbus.OnWriteLog += OnWriteLog;
-                MotorControl.HYmodbus.InitialPoll();
+                MotorControl._hyModbus.OnWriteTerminalForm += Serial_Write;
+                MotorControl._hyModbus.OnWriteLog += OnWriteLog;
+                MotorControl._hyModbus.InitialPoll();
 
                 int i = 0;
-                while (!MotorControl.HYmodbus.VFDData.InitDataOK())
+                while (!MotorControl._hyModbus.VFDData.InitDataOK())
                 {
                     Thread.Sleep(100);
                     if (i++ > 50)
                     {
-                        if (!MotorControl.HYmodbus.ComOpen)
-                            throw new Exception($"Unable to open Serial port to VFD {MotorControl.HYmodbus.PortName}, Baud: {MotorControl.HYmodbus.BaudRate}");
+                        if (!MotorControl._hyModbus.ComOpen)
+                            throw new Exception($"Unable to open Serial port to VFD {MotorControl._hyModbus.PortName}, Baud: {MotorControl._hyModbus.BaudRate}");
                         else
-                            throw new Exception($"VFD not initialized: {MotorControl.HYmodbus.VFDData.MotorSettings()}");
+                            throw new Exception($"VFD not initialized: {MotorControl._hyModbus.VFDData.MotorSettings()}");
                     }
                 }
 
@@ -95,7 +95,7 @@ namespace ConsoleTest
             Console.WriteLine("Waiting for motor to stop... then closing serial port");
             motorControl.Stop();
             Thread.Sleep(2000);
-            motorControl.HYmodbus.Disconnect();
+            motorControl._hyModbus.Disconnect();
         }
 
         public static void Serial_Write(string message, bool send)

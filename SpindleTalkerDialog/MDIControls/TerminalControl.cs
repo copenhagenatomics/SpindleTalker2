@@ -15,7 +15,7 @@ namespace SpindleTalker2
         {
             this.commandBuilder1 = new UserControls.CommandBuilder(this, mainWindow, csvSeperator);
             InitializeComponent();
-            mainWindow._hyMotorControl.HYmodbus.OnWriteTerminalForm += Serial_WriteTerminalForm;
+            mainWindow._hyMotorControl._hyModbus.OnWriteTerminalForm += Serial_WriteTerminalForm;
         }
 
         private void Serial_WriteTerminalForm(string message, bool send)
