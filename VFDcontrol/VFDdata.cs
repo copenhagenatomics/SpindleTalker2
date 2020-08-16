@@ -22,18 +22,18 @@ namespace VfdControl
         private  bool _serialConnected;
 
 
-        public  int MinFreq
+        public double LowerLevelFreq
         {
-            get { return _MinFreq; }
+            get { return _LowerLevelFreq; }
             set
             {
-                _MinFreq = value;
+                _LowerLevelFreq = value;
                 OnChanged?.Invoke(this);
             }
         }
-        private  int _MinFreq;
+        private double _LowerLevelFreq;
 
-        public  int MaxFreq
+        public  double MaxFreq
         {
             get { return _MaxFreq; }
             set
@@ -42,7 +42,18 @@ namespace VfdControl
                 OnChanged?.Invoke(this);
             }
         }
-        private  int _MaxFreq;
+        private double _MaxFreq;
+
+        public double BaseFreq
+        {
+            get { return _BaseFreq; }
+            set
+            {
+                _BaseFreq = value;
+                OnChanged?.Invoke(this);
+            }
+        }
+        private double _BaseFreq;
 
         public  int MaxRPM
         {
@@ -62,21 +73,21 @@ namespace VfdControl
             {
                 if (MaxFreq > 0 && MaxRPM > 0)
                 {
-                    int minRPM = (int)(((double)MaxRPM / (double)MaxFreq) * (double)MinFreq);
+                    int minRPM = (int)(((double)MaxRPM / (double)MaxFreq) * (double)LowerLevelFreq);
                     return minRPM;
                 }
                 else return 0;
             }
         }
 
-        public  int IntermediateFreq
+        public double IntermediateFreq
         {
             get { return _IntermediateFreq; }
             set { _IntermediateFreq = value; }
         }
-        private  int _IntermediateFreq;
+        private double _IntermediateFreq;
 
-        public  int MinimumFreq
+        public  double MinimumFreq
         {
             get { return _MinimumFreq; }
             set
@@ -84,7 +95,7 @@ namespace VfdControl
                 _MinimumFreq = value;
             }
         }
-        private  int _MinimumFreq;
+        private double _MinimumFreq;
 
         public  double MaxVoltage
         {
@@ -253,7 +264,7 @@ namespace VfdControl
         public  void Clear()
         {
             MaxFreq = -1;
-            MinFreq = -1;
+            LowerLevelFreq = -1;
             MaxRPM = -1;
         }
 
@@ -264,7 +275,7 @@ namespace VfdControl
 
         public string MotorSettings()
         {
-            return $"MaxFreq {MaxFreq}, MinFreq {MinFreq}, MaxVoltage {MaxVoltage}, MaxRPM {MaxRPM}, RatedMotorVoltag {RatedMotorVoltage}, RatedMotorCurrent {_RatedMotorCurrent}, RatedMotorRPM {RatedMotorRPM}";
+            return $"MaxFreq {MaxFreq}, MinFreq {LowerLevelFreq}, MaxVoltage {MaxVoltage}, MaxRPM {MaxRPM}, RatedMotorVoltag {RatedMotorVoltage}, RatedMotorCurrent {_RatedMotorCurrent}, RatedMotorRPM {RatedMotorRPM}";
         }
 
         public List<double> GetValues()
@@ -274,7 +285,7 @@ namespace VfdControl
 
         public bool InitDataOK()
         {
-            return MaxFreq > 0 && MinFreq >= 0 && MaxRPM > 0 && OutRPM >= 0;
+            return MaxFreq > 0 && LowerLevelFreq >= 0 && MaxRPM > 0 && OutRPM >= 0;
         }
     }
 }

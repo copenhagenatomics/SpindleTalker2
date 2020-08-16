@@ -66,7 +66,7 @@ namespace VfdControl
             //
 
             _hyModbus.SendDataAsync(ReadCurrentSetF); // I'm not sure why this is needed but it seems to be
-            SetFrequency(_hyModbus.VFDData.MinFreq); 
+            SetFrequency(_hyModbus.VFDData.LowerLevelFreq); 
 
             // For future testing, the spindle reverse function doesn't appear to be working
             _hyModbus.SendDataAsync(direction == SpindleDirection.Forward ? RunForward : RunBack);
@@ -106,7 +106,7 @@ namespace VfdControl
             //   Check that the target frequency does not exceed the maximum or minumum values for the VFD and/or
             //   spindle. I assume that the VFD will ignore values above max (haven't tested) but values below the
             //   minumum recommended frequency for air-cooled spindles can cause major overheating issues.
-            if (targetFrequency < _hyModbus.VFDData.MinFreq) targetFrequency = _hyModbus.VFDData.MinFreq;
+            if (targetFrequency < _hyModbus.VFDData.LowerLevelFreq) targetFrequency = _hyModbus.VFDData.LowerLevelFreq;
             else if (targetFrequency > _hyModbus.VFDData.MaxFreq) targetFrequency = _hyModbus.VFDData.MaxFreq;
 
             int frequency = (int)targetFrequency * 100; // VFD expects target frequency in hundredths of Hertz

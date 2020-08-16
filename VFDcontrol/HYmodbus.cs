@@ -161,8 +161,12 @@ namespace VfdControl
             // Request current RPM to see if the spindle is actually still running
             SendDataAsync(packet);
 
-            // Request max frequency
+            // Request base frequency
             packet[1] = (byte)CommandType.FunctionRead;
+            packet[3] = (byte)ModbusRegisters.BaseFreq;
+            SendDataAsync(packet);
+
+            // Request max frequency
             packet[3] = (byte)ModbusRegisters.MaxFreq;
             SendDataAsync(packet);
 
@@ -187,7 +191,7 @@ namespace VfdControl
             SendDataAsync(packet);
 
             // Request minimum frequency
-            packet[3] = (byte)ModbusRegisters.MinFreq;
+            packet[3] = (byte)ModbusRegisters.LowerLimitFreq;
             SendDataAsync(packet);
 
             // Request rated motor voltage
@@ -541,13 +545,17 @@ namespace VfdControl
         {
             switch (cmdType)
             {
+                case (byte)ModbusRegisters.BaseFreq:
+                    VFDData.BaseFreq = rawValue / 100D;
+                    PrintReceivedData("Net Frequency (Hz)", VFDData.BaseFreq);
+                    return;
                 case (byte)ModbusRegisters.MaxFreq:
-                    VFDData.MaxFreq = rawValue / 100;
+                    VFDData.MaxFreq = rawValue / 100D;
                     PrintReceivedData("Maximum Frequency (Hz)", VFDData.MaxFreq);
                     return;
-                case (byte)ModbusRegisters.MinFreq:
-                    VFDData.MinFreq = rawValue / 100;
-                    PrintReceivedData("Minimum Frequency (Hz)", VFDData.MinFreq);
+                case (byte)ModbusRegisters.LowerLimitFreq:
+                    VFDData.LowerLevelFreq = rawValue / 100D;
+                    PrintReceivedData("Lower Limit Frequency (Hz)", VFDData.LowerLevelFreq);
                     return;
                 case (byte)ModbusRegisters.MaxRPM:
                     VFDData.RatedMotorRPM = rawValue;
@@ -556,11 +564,11 @@ namespace VfdControl
                     PrintReceivedData("Maximum RPM", VFDData.MaxRPM);
                     return;
                 case (byte)ModbusRegisters.IntermediateFreq:
-                    VFDData.IntermediateFreq = rawValue / 100;
+                    VFDData.IntermediateFreq = rawValue / 100D;
                     PrintReceivedData("Intermediate Frequency", VFDData.IntermediateFreq);
                     return;
                 case (byte)ModbusRegisters.MinimumFreq:
-                    VFDData.MinimumFreq = rawValue / 100;
+                    VFDData.MinimumFreq = rawValue / 100D;
                     PrintReceivedData("Minimum Frequency", VFDData.MinimumFreq);
                     return;
                 case (byte)ModbusRegisters.MaxVoltage:

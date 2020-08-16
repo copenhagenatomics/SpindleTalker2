@@ -133,7 +133,7 @@
             this.MeterVDC.Location = new System.Drawing.Point(600, 3);
             this.MeterVDC.Name = "MeterVDC";
             this.MeterVDC.ScaleDivisions = 6;
-            this.MeterVDC.ScaleMaxValue = 400D;
+            this.MeterVDC.ScaleMaxValue = 600D;
             this.MeterVDC.ScaleMinValue = -1D;
             this.MeterVDC.ScaleSubDivisions = 3;
             this.MeterVDC.Size = new System.Drawing.Size(140, 208);
@@ -149,7 +149,7 @@
             this.MeterVAC.Location = new System.Drawing.Point(750, 3);
             this.MeterVAC.Name = "MeterVAC";
             this.MeterVAC.ScaleDivisions = 6;
-            this.MeterVAC.ScaleMaxValue = 300D;
+            this.MeterVAC.ScaleMaxValue = 380D;
             this.MeterVAC.ScaleMinValue = 0D;
             this.MeterVAC.ScaleSubDivisions = 3;
             this.MeterVAC.Size = new System.Drawing.Size(140, 208);

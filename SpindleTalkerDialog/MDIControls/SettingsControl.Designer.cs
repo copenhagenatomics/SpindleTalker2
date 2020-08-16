@@ -408,7 +408,7 @@
             // 
             this.pictureBoxFreqVolt.Location = new System.Drawing.Point(3, 215);
             this.pictureBoxFreqVolt.Name = "pictureBoxFreqVolt";
-            this.pictureBoxFreqVolt.Size = new System.Drawing.Size(200, 200);
+            this.pictureBoxFreqVolt.Size = new System.Drawing.Size(300, 300);
             this.pictureBoxFreqVolt.TabIndex = 11;
             this.pictureBoxFreqVolt.TabStop = false;
             // 

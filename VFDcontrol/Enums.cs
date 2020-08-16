@@ -66,13 +66,14 @@ namespace VfdControl
 
     public enum ModbusRegisters
     {
+        BaseFreq = 0x04, //PD004
         MaxFreq = 0x05, //PD005
         IntermediateFreq = 0x06, //PD006
         MinimumFreq = 0x07, //PD007
         MaxVoltage = 0x08, //PD008
         IntermediateVoltage = 0x09, //PD009
         MinVoltage = 0x0A, //PD010
-        MinFreq = 0x0B, //PD011
+        LowerLimitFreq = 0x0B, //PD011
         Acceleration = 0x0E, // PD014
         Deceleration = 0x0F, // PD015
         RatedMotorVoltage = 0x8D,  //PD141
