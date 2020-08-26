@@ -282,7 +282,7 @@ namespace VfdControl
             }
 
             _spindleActive.Set();
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 8; i++)
             {
                 //Application.DoEvents(); Code disabled for .net core
                 if (_receivedQueue.Any())
@@ -327,7 +327,7 @@ namespace VfdControl
             {
                 ProcessControlData(receivedValue, receivedPacket[3]);
                //  Debug.Print(VFDData.GetControlDataString());
-                OnProcessPollPacket?.Invoke(VFDData);
+               OnProcessPollPacket?.Invoke(VFDData);
             }
             else if(receivedPacket[1] == (byte)CommandType.FunctionRead || receivedPacket[1] == (byte)CommandType.FunctionWrite)
             {
@@ -588,7 +588,7 @@ namespace VfdControl
                     PrintReceivedData("Rated Motor Voltage", VFDData.RatedMotorVoltage);
                     return;
                 case (byte)ModbusRegisters.RatedMotorCurrent:
-                    VFDData.RatedMotorCurrent = rawValue;
+                    VFDData.RatedMotorCurrent = rawValue / 10.0;
                     PrintReceivedData("Rated Motor Current", VFDData.RatedMotorCurrent);
                     return;
                 case (byte)ModbusRegisters.NumberOfMotorPols:

@@ -10,11 +10,12 @@ namespace SpindleTalker2
         public static int height = 300;
         public static int edgeWidth = 5;
         public static int dotSize = 6;
-        public static int plotWidth = width - 2*edgeWidth;
-        public static int plotHeight = height - 2*edgeWidth;
-        public static int farEdge = width - edgeWidth;
         public static Image Draw(VFDdata data)
         {
+            int plotWidth = width - 2 * edgeWidth;
+            int plotHeight = height - 2 * edgeWidth;
+            int farEdge = width - edgeWidth;
+
             float x1 = (float)(edgeWidth + (plotWidth * data.MinimumFreq / data.MaxFreq));
             float x2 = (float)(edgeWidth + (plotWidth * data.IntermediateFreq / data.MaxFreq));
             float x3 = (float)(edgeWidth + (plotWidth * data.MaxFreq / data.MaxFreq));

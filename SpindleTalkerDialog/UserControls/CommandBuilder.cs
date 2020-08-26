@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Forms;
 using VfdControl;
 
@@ -80,9 +81,12 @@ namespace SpindleTalker2.UserControls
             dialog.Filter = "csv file |*.csv";
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                _mainWindow._hyMotorControl.Download(dialog.FileName, _csvSeperator);
-                _mainWindow._hyMotorControl._hyModbus.StartPolling();
-                MessageBox.Show("Finished downloading all values to file");
+                new Thread(() =>
+                {
+                    _mainWindow._hyMotorControl.Download(dialog.FileName, _csvSeperator);
+                    _mainWindow._hyMotorControl._hyModbus.StartPolling();
+                    MessageBox.Show("Finished downloading all values to file");
+                }).Start();
             }
         }
 
@@ -95,19 +99,14 @@ namespace SpindleTalker2.UserControls
             dialog.Filter = "csv file |*.csv";
             if(dialog.ShowDialog() == DialogResult.OK)
             {
-                try
-                {
+                new Thread(() => {
                     if(_mainWindow._hyMotorControl.Upload(dialog.FileName, _csvSeperator))
                     { 
                         MessageBox.Show("Finished uploading all values to VFD");
                     }
 
                     _mainWindow._hyMotorControl._hyModbus.StartPolling();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.ToString());
-                }
+                }).Start();
             }
         }
     }
