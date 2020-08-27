@@ -124,6 +124,7 @@ namespace VfdControl
                 new Thread(() => DoWork()).Start();
             }
 
+            DownloadUploadMode = false;
             _spindleActive.Reset();   
             InitialPoll();
         }
@@ -431,7 +432,7 @@ namespace VfdControl
                         comPort.Write(dataToSend, 0, dataToSend.Length);
                         if (dataToSend[1] != (byte)CommandType.ReadControlData)
                         {
-                            PrintSendData(dataToSend);
+                            //PrintSendData(dataToSend);
                         }
 
                         if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms

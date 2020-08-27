@@ -157,10 +157,9 @@ namespace SpindleTalker2
             }
             else
             {
-                _hyMotorControl._hyModbus.Connect();
                 stopWatchInitialPoll.Reset();
-                stopWatchInitialPoll.Start();
-                
+                _hyMotorControl._hyModbus.Connect();
+                stopWatchInitialPoll.Start();               
                 timerInitialPoll.Start();
             }
 
