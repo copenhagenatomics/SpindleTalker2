@@ -537,7 +537,7 @@ namespace VfdControl
                     VFDData.OutVoltAC = rawValue / 10.0;
                     return;
                 case (byte)ControlDataType.Tmp:
-                    VFDData.OutTemperature = rawValue / 10;
+                    VFDData.OutTemperature = rawValue / 10.0;
                     return;
             }
         }
