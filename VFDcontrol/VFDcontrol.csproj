@@ -15,11 +15,11 @@
     <RepositoryUrl>https://github.com/copenhagenatomics/SpindleTalker2</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>English</NeutralLanguage>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Ports" Version="4.7.0" />
+    <PackageReference Include="System.IO.Ports" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
