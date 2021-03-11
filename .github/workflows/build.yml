@@ -2,9 +2,9 @@
 name: build
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 jobs:
   build:
     runs-on: windows-latest
@@ -22,14 +22,14 @@ jobs:
       run: dotnet test -c Release --no-build --verbosity normal
     - uses: rymndhng/release-on-push-action@9bf66ab47d66543c6ebacc0ad9ef4312e3e3e33f
       id: release-on-push
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # tag only pushes to the main branch
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # tag only pushes to the master branch
       with:
         bump_version_scheme: minor
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       tag_name: ${{ steps.release-on-push.outputs.tag_name }}
-  release:
+  packageapp:
     needs: build
     runs-on: windows-latest
     steps:
@@ -42,15 +42,26 @@ jobs:
         dotnet-version: 5.0.x
     - name: Generate app files
       run: dotnet publish -c Release
-    - name: Generate zip # this and next step is just to zip the app
-      uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e
+    - uses: actions/upload-artifact@v2 # make the files available to next action that will zip and release the app from linux
       with:
-        filename: 'SpindleTalker.zip'
-        directory: SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/
+        name: appfiles
+        path: SpindleTalkerDialog/bin/Release/net5.0-windows/publish/
+  release:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # only create releases on pushes to the master branch
+    needs: packageapp
+    runs-on: ubuntu-latest 
+    steps:
+    - uses: actions/download-artifact@v2 # make the files available to next action that will zip and release the app from linux
+      with:
+        name: appfiles
+    - name: Install zip
+      uses: montudor/action-zip@c25e01d7489d0274569440a2f0281b4569df16bc
+    - name: Zip app files
+      run: zip -qq -r SpindleTalker.zip *
     - name: Release
       uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
       with:
-        files: 'SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/*.zip'
+        files: 'appfiles/*.zip'
         tag_name: ${{ needs.build.outputs.tag_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
