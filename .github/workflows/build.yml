@@ -21,6 +21,7 @@ jobs:
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
   create-tag-and-release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: rymndhng/release-on-push-action@9bf66ab47d66543c6ebacc0ad9ef4312e3e3e33f
