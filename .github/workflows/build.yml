@@ -20,37 +20,37 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
-    # - uses: rymndhng/release-on-push-action@9bf66ab47d66543c6ebacc0ad9ef4312e3e3e33f
-    #   id: release-on-push
-    #   if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # tag only pushes to the main branch
-    #   with:
-    #     bump_version_scheme: minor
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # outputs:
-    #   tag_name: ${{ steps.release-on-push.outputs.tag_name }}
-  # release:
-  #   needs: build
-  #   runs-on: windows-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       fetch-depth: 0 #needed to get the tags for proper versioning. Also note at this point we expect the commit to be tagged by the build.
-  #   - name: Setup .NET
-  #     uses: actions/setup-dotnet@v1
-  #     with:
-  #       dotnet-version: 5.0.x
-  #   - name: Generate app files
-  #     run: dotnet publish -c Release
-  #   - name: Generate zip # this and next step is just to zip the app
-  #     uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e
-  #     with:
-  #       filename: 'SpindleTalker.zip'
-  #       directory: SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/
-  #   - name: Release
-  #     uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
-  #     with:
-  #       files: 'SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/*.zip'
-  #       tag_name: ${{ needs.build.outputs.tag_name }}
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: rymndhng/release-on-push-action@9bf66ab47d66543c6ebacc0ad9ef4312e3e3e33f
+      id: release-on-push
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # tag only pushes to the main branch
+      with:
+        bump_version_scheme: minor
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      tag_name: ${{ steps.release-on-push.outputs.tag_name }}
+  release:
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 #needed to get the tags for proper versioning. Also note at this point we expect the commit to be tagged by the build.
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Generate app files
+      run: dotnet publish -c Release
+    - name: Generate zip # this and next step is just to zip the app
+      uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e
+      with:
+        filename: 'SpindleTalker.zip'
+        directory: SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/
+    - name: Release
+      uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
+      with:
+        files: 'SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/*.zip'
+        tag_name: ${{ needs.build.outputs.tag_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
