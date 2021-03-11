@@ -50,6 +50,8 @@ jobs:
       with:
         name: appfiles
         path: SpindleTalkerDialog/bin/Release/net5.0-windows/publish/
+    outputs:
+      tag_name: ${{ needs.create-tag-and-release.outputs.tag_name }}
   release:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # only create releases on pushes to the master branch
     needs: packageapp
@@ -66,6 +68,6 @@ jobs:
       uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
       with:
         files: 'appfiles/*.zip'
-        tag_name: ${{ needs.create-tag-and-release.outputs.tag_name }}
+        tag_name: ${{ needs.packageapp.outputs.tag_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
