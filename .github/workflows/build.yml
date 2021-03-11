@@ -30,7 +30,6 @@ jobs:
     outputs:
       tag_name: ${{ steps.release-on-push.outputs.tag_name }}
   packageapp:
-    # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # only create releases on pushes to the master branch
     needs: build
     runs-on: windows-latest
     steps:
@@ -48,14 +47,13 @@ jobs:
         name: appfiles
         path: SpindleTalkerDialog/bin/Release/net5.0-windows/publish/
   release:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # only create releases on pushes to the master branch
     needs: packageapp
     runs-on: ubuntu-latest 
     steps:
     - uses: actions/download-artifact@v2 # make the files available to next action that will zip and release the app from linux
       with:
         name: appfiles
-    - name: app files
-      run: ls -R
     - name: Install zip
       uses: montudor/action-zip@c25e01d7489d0274569440a2f0281b4569df16bc
     - name: Zip app files
