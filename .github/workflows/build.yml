@@ -50,6 +50,9 @@ jobs:
       with:
         name: appfiles
         path: SpindleTalkerDialog/bin/Release/net5.0-windows/publish/
+    - name: publish VfdControl to nuget #only when building on master and when tagging
+      if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') || startsWith(github.ref, 'refs/tags') }}
+      run: dotnet nuget push VfdControl/bin/Release/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.CA_NUGET_PACKAGES_KEY }}
     outputs:
       tag_name: ${{ needs.create-tag-and-release.outputs.tag_name }}
   release:
