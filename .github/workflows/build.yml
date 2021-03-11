@@ -60,7 +60,6 @@ jobs:
       uses: montudor/action-zip@c25e01d7489d0274569440a2f0281b4569df16bc
     - name: Zip app files
       run: zip -qq -r SpindleTalker.zip *
-      working-directory: 'appfiles'
     - name: Release
       uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
       with:
