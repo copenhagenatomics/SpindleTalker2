@@ -15,6 +15,7 @@
     <RepositoryUrl>https://github.com/copenhagenatomics/SpindleTalker2</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>English</NeutralLanguage>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
