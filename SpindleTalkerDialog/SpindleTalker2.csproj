@@ -5,6 +5,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>package_settings.ico</ApplicationIcon>
