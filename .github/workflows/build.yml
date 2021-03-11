@@ -20,6 +20,9 @@ jobs:
       run: dotnet build -c Release --no-restore
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
+  create-tag-and-release:
+    runs-on: ubuntu-latest
+    steps:
     - uses: rymndhng/release-on-push-action@9bf66ab47d66543c6ebacc0ad9ef4312e3e3e33f
       id: release-on-push
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # tag only pushes to the master branch
@@ -30,7 +33,7 @@ jobs:
     outputs:
       tag_name: ${{ steps.release-on-push.outputs.tag_name }}
   packageapp:
-    needs: build
+    needs: create-tag-and-release
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -62,6 +65,6 @@ jobs:
       uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
       with:
         files: 'appfiles/*.zip'
-        tag_name: ${{ needs.build.outputs.tag_name }}
+        tag_name: ${{ needs.create-tag-and-release.outputs.tag_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
