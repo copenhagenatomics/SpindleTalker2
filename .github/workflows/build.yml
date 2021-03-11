@@ -39,6 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
+        ref: ${{ needs.create-tag-and-release.outputs.tag_name }}
         fetch-depth: 0 #needed to get the tags for proper versioning. Also note at this point we expect the commit to be tagged by the build.
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
