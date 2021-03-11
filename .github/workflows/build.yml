@@ -46,7 +46,7 @@ jobs:
     - uses: actions/upload-artifact@v2 # make the files available to next action that will zip and release the app from linux
       with:
         name: appfiles
-        path: SpindleTalkerDialog/bin/Debug/net5.0-windows/publish/
+        path: SpindleTalkerDialog/bin/Release/net5.0-windows/publish/
   release:
     needs: packageapp
     runs-on: ubuntu-latest 
