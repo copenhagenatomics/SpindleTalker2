@@ -67,7 +67,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
       with:
-        files: 'appfiles/*.zip'
+        files: '*.zip'
         tag_name: ${{ needs.packageapp.outputs.tag_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
