@@ -1,0 +1,201 @@
+"ID";"Value";"DefaultValue";"Type";"Description";"Unit"
+0;0;0;byte;"Parameter read only mode";enum
+1;2;0;byte;"Operation mode (manual, input pin, RS485)";enum
+2;2;0;byte;"Frequency from (manual, input pin, RS485)";enum
+3;0;0;intX100;"Main Frequency";Hz
+4;50;50;intX100;"Base Frequency";Hz
+5;100;50;intX100;"Motor Max operating frequency";Hz
+6;2.5;2.5;intX100;"Intermediate frequency";Hz
+7;0.5;0.5;intX100;"Motor minimum frequency while rotating, (see PD011)";Hz
+8;255;220;intX10;"Motor Max Voltage";Volt
+9;13;0.15;intX10;"Intermediate Voltage";Volt
+10;6.5;0;intX10;"Motor Min Voltage";Volt
+11;0;0;intX100;"Frequency lower limit, (see PD007)";Hz
+12;0;0;byte;"Not used";Reserved
+13;88;0;byte;"Reset VFD to factory settings";enum
+14;15;12;intX10;"Acceleration t1";Sec
+15;15;12;intX10;"Deceleration t1";Sec
+16;30;20;intX10;"Acceleration t2";Sec
+17;30;20;intX10;"Deceleration t2";Sec
+18;60;40;intX10;"Acceleration t3";Sec
+19;60;40;intX10;"Deceleration t3";Sec
+20;120;80;intX10;"Acceleration t4";Sec
+21;120;80;intX10;"Deceleration t4";Sec
+22;0;0;byte;"Not used";Reserved
+23;1;1;byte;"Reverse rotation select";enum
+24;1;1;byte;"Enable stop key";enum
+25;0;0;byte;"Startup mode (Freq ramp up curve)";enum
+26;0;0;byte;"Break mode (freq ramp down curve)";enum
+27;0.5;0.5;intX100;"Starting frequency (see PD007, PD011)";Hz
+28;0.5;0.5;intX100;"Stopping frequency";Hz
+29;0;0;intX10;"DC breaking time before startup";Sec
+30;0;0;intX10;"DC breaking time after stop";Sec
+31;0;2;intX10;"DC breaking voltage level";%
+32;5;5;intX10;"Time to measure frequency of motor";Sec
+33;0;150;int;"Current level when measuring frequency of motor";%
+34;0.5;0.5;intX10;"Inverter track time of up or down";?
+35;0;Unknown;byte;"Not used";Reserved
+36;0;Unknown;byte;"NA";Unknown
+37;0;Unknown;byte;"NA";Unknown
+38;0;Unknown;byte;"NA";Unknown
+39;0;Unknown;byte;"NA";Unknown
+40;0;Unknown;byte;"NA";Unknown
+41;7;5 (4 kHz);byte;"PWM carrier frequency (see table)";enum (kHz)
+42;5;5;intX100;"Jogging Frequency";Hz
+43;0;1;byte;"S-Curves time";sec
+44;2;2;byte;"Function of input Pin D1 (see table)";enum
+45;3;3;byte;"Function of input Pin D2 (see table)";enum
+46;14;14;byte;"Function of input Pin D3 (see table)";enum
+47;22;22;byte;"Function of input Pin D4 (see table)";enum
+48;24;24;byte;"Function of input Pin D5 (see table)";enum
+49;23;23;byte;"Function of input Pin D6 (see table)";enum
+50;1;1;byte;"Function of output Pin Y1 (see table)";enum
+51;5;5;byte;"Function of output Pin Y2 (see table)";enum
+52;3;3;byte;"Function of output Pin Y3 (see table)";enum
+53;0;Unknown;byte;"NA";Unknown
+54;0;0;byte;"Function of analog output pin (see table)";enum
+55;100;100;byte;"Function of analog input pin (see table)";%
+56;0;0;byte;"Skip Frequency 1";Hz
+57;0;0;byte;"Skip Frequency 2";Hz
+58;0;0;byte;"Skip Frequency 3";Hz
+59;0.5;0.5;intX100;"Skip Frequency Range";Hz
+60;0;0;byte;"Uniform Frequency 1";Hz
+61;0;0;byte;"Uniform Frequency 2";Hz
+62;0.5;0.5;intX100;"Uniform Frequency Range";Hz
+63;0.1;0.1;intX10;"Timer 1 time";sec
+64;1;1;byte;"Timer 2 time";sec
+65;0;0;byte;"counter value";count
+66;0;0;byte;"intermediate counter";count
+67;0;Unknown;byte;"Not used";Not used
+68;0;Unknown;byte;"NA";Unknown
+69;0;Unknown;byte;"NA";Unknown
+70;1;0;byte;"Analog input pin";enum
+71;20;20;byte;"Analog filtering constant";?
+72;400;50;intX100;"Higher analog frequency";Hz
+73;0;0;byte;"Lower analog frequency";Hz
+74;0;0;byte;"Bias direction at higher frequency";Hz
+75;0;0;byte;"Bias direction at lower frequency";Hz
+76;0;0;byte;"Analog negative bias reverse";bool
+77;0;0;byte;"Up/Down function";bool
+78;0;0;byte;"Up/Down speed";bool
+79;1;1;byte;"Not used";Not used
+80;0;0;byte;"PLC Operation";enum
+81;0;0;byte;"Auto PLC";enum
+82;0;0;byte;"PLC running direction 1 - 8";enum
+83;0;0;byte;"PLC running direction 9 - 16";enum
+84;0;0;byte;"PLC ramp time 1 - 8";sec
+85;0;0;byte;"PLC ramp time 9 - 16";sec
+86;15;15;intX100;"PLC frequency 2";Hz
+87;20;20;intX100;"PLC frequency 3";Hz
+88;25;25;intX100;"PLC frequency 4";Hz
+89;30;30;intX100;"PLC frequency 5";Hz
+90;35;35;intX100;"PLC frequency 6";Hz
+91;40;40;intX100;"PLC frequency 7";Hz
+92;0.5;0.5;intX100;"PLC frequency 8";Hz
+93;10;10;intX100;"PLC frequency 9";Hz
+94;15;15;intX100;"PLC frequency 10";Hz
+95;20;20;intX100;"PLC frequency 11";Hz
+96;25;25;intX100;"PLC frequency 12";Hz
+97;30;30;intX100;"PLC frequency 13";Hz
+98;35;35;intX100;"PLC frequency 14";Hz
+99;40;40;intX100;"PLC frequency 15";Hz
+100;45;45;intX100;"PLC frequency 16";Hz
+101;10;10;intX10;"PLC timer 1 and 9";sec
+102;10;10;intX10;"PLC timer 2 and 10";sec
+103;0;0;byte;"PLC timer 3 and 11";sec
+104;0;0;byte;"PLC timer 4 and 12";sec
+105;0;0;byte;"PLC timer 5 and 13";sec
+106;0;0;byte;"PLC timer 6 and 14";sec
+107;0;0;byte;"PLC timer 7 and 15";sec
+108;0;0;byte;"PLC timer 8 and 16";sec
+109;0;Unknown;byte;"NA";Unknown
+110;0;Unknown;byte;"NA";Unknown
+111;0;Unknown;byte;"NA";Unknown
+112;0;Unknown;byte;"NA";Unknown
+113;0;Unknown;byte;"NA";Unknown
+114;0;Unknown;byte;"NA";Unknown
+115;0;Unknown;byte;"NA";Unknown
+116;0;Unknown;byte;"NA";Unknown
+117;0;0;byte;"Multi speed memory function";bool
+118;1;1;byte;"Over voltage stall prevention";bool
+119;150;150;byte;"Stall prevention level at ramp up";%
+120;0;0;byte;"Stall prevention level at constant speed";%
+121;5;5;intX10;"Time for stall prevention at constant speed";sec
+122;0;150;byte;"Stall prevention level at ramp down";%
+123;0;0;byte;"Over torque detect mode";enum
+124;0;0;byte;"Over torque detect level";%
+125;1;1;intX10;"Over torque detect time";sec
+126;0;0;byte;"counter memory";bool
+127;0;Unknown;byte;"Not used";Not used
+128;0;Unknown;byte;"Not used";Not used
+129;0;Unknown;byte;"Not used";Not used
+130;0;0;byte;"Number of pump";enum
+131;60;60;byte;"Continous running time of pump";sec
+132;5;5;byte;"Interlocking time of pump";sec
+133;60;60;byte;"High speed running time";sec
+134;60;60;byte;"Low speed running time";sec
+135;95;95;byte;"Stopping voltage level";%
+136;30;30;byte;"Lasting time at stopping voltage level";sec
+137;80;80;byte;"Wakeup voltage level";%
+138;20;20;intX100;"Sleep Frequency";Hz
+139;20;20;byte;"Lasting time of sleeping frequency";sec
+140;0;Unknown;byte;"Not used";Not used
+141;255;220;intX10;"Rated Motor Voltage";Volt
+142;8;17;intX10;"Raded Motor Current";Amp
+143;4;4;byte;"Number of Motor Poles";count
+144;1800;1440;int;"Rated Motor speed (RPM)";RPM
+145;0;2;intX10;"Auto torque compensation";%
+146;40;40;byte;"Motor no load current";Amp
+147;0;100;byte;"Motor slip compensation";?
+148;0;Unknown;byte;"Not used";Not used
+149;0;Unknown;byte;"Not used";Not used
+150;1;1;byte;"Auto voltage regulation";bool
+151;0;0;byte;"Auto emergency saving";%
+152;1;1;intX10;"Fault reset times";count
+153;0;0;byte;"Restart after instantaneous stop";bool
+154;0.5;0.5;intX10;"Allowable power breakdown time";sec
+155;0;0;byte;"Number of abnormal restart";count
+156;100;100;intX10;"Proportional constant (P)";%
+157;5;5;intX10;"Integral time (I)";sec
+158;0;0;byte;"Differential time (D)";sec
+159;0;0;byte;"Target value";%
+160;0;0;byte;"PID target value";bool
+161;100;100;byte;"PID upper limit";%
+162;0;0;byte;"PID lower limit";%
+163;1;0;byte;"RS485 address";address
+164;3;1;byte;"RS485 baudrate";bit/sec
+165;3;0;byte;"RS485 flow control";Unknown
+166;0;0;byte;"not used";Unknown
+167;0;0;byte;"not used";Unknown
+168;0;0;byte;"not used";Unknown
+169;0;Unknown;byte;"NA";Unknown
+170;0;0;byte;"Display name";Unknown
+171;7;7;byte;"Display item open";Unknown
+172;88;88;byte;"Fault clear";Unknown
+173;255;255;intX10;"Voltage rating of VFD";Volt
+174;17;7;intX10;"current rating of VFD";Amp
+175;0;0;byte;"VFD model";enum
+176;0;0;byte;"VFD frequency standard";enum
+177;91;91;byte;"Fault record 1";Unknown
+178;65;89;byte;"Fault record 2";Unknown
+179;91;255;byte;"Fault record 3";Unknown
+180;90;255;byte;"Fault record 4";Unknown
+181;88;88;byte;"Software version";Unknown
+182;18031;18091;int;"Manufacture data";Unknown
+183;65535;65535;int;"Serial number";Unknown
+184;20;Unknown;byte;"Factory Setting";Unknown
+185;0;Unknown;byte;"Factory Setting";Unknown
+186;0;Unknown;byte;"Factory Setting";Unknown
+187;0;Unknown;byte;"Factory Setting";Unknown
+188;0;Unknown;byte;"Factory Setting";Unknown
+189;0;Unknown;byte;"Factory Setting";Unknown
+190;0;Unknown;byte;"Factory Setting";Unknown
+191;0;Unknown;byte;"Factory Setting";Unknown
+192;0;Unknown;byte;"Factory Setting";Unknown
+193;0;Unknown;byte;"Factory Setting";Unknown
+194;0;Unknown;byte;"Factory Setting";Unknown
+195;0;Unknown;byte;"Factory Setting";Unknown
+196;0;Unknown;byte;"Factory Setting";Unknown
+197;0;Unknown;byte;"Factory Setting";Unknown
+198;0;Unknown;byte;"Factory Setting";Unknown
+199;0;Unknown;byte;"Factory Setting";Unknown
