@@ -651,7 +651,7 @@ namespace VfdControl
         // Taken from http://www.codeproject.com/Articles/19214/CRC-Calculation
         // Credit to Ranjan.D
 
-        private static byte[] crc_table = new byte[512];
+        private byte[] crc_table { get; set; } = new byte[512];
 
         #region Lookup Table
         private void populateCRCTable()

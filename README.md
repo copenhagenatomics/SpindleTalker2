@@ -18,7 +18,7 @@ Just extract the contents of the zip file below into the directory of your choic
 
 The program is designed to allow standalone control of the spindle. There is a Mach3 plugin out there which I eventually hope to use myself but I've written this for use with my grbl controller and ShapeOKO2.
 
-The application requires the version 4.0 or above of the .NET Framework. It is written in Visual C# using Visual Studio 2013.
+The application requires .NET 5.0 or above of the .NET Framework. It is written in Visual C# using Visual Studio 2019.
 
 It is based heavily on the work of user 'Scruffoid' and his 'Spindle Talker' application from http://www.woodworkforums.com/showthread.php?t=96380&page=8 I hope he doesn't mind me using the name, I mean it as an acknowledgement of his work :-)
 

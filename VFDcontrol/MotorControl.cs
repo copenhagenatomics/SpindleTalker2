@@ -16,6 +16,7 @@ namespace VfdControl
         /// <summary>Get array with StopBit names.</summary>
         public string[] StopBitNames { get { return Enum.GetNames(typeof(StopBits)); } private set { } }
         public HYmodbus _hyModbus { get; set; }
+        private SettingsHandler SettingsHandler { get; } = new SettingsHandler();
         #region Control packet definitions
         private byte[] ReadCurrentSetF { get; set; }
         private byte[] RunForward { get; set; }
@@ -121,10 +122,15 @@ namespace VfdControl
 
             _hyModbus.SendDataAsync(controlPacket);
         }
-
-        public bool Upload(string fileName, char csvSeperator)
+        /// <summary>
+        /// Write settings to VFD.
+        /// </summary>
+        /// <param name="value">Settings.</param>
+        /// <param name="csvSeperator">Seperator in settings.</param>
+        /// <returns>True if writing was a success else false.</returns>
+        public bool WriteSettingsToVfd(List<string> value, char csvSeperator)
         {
-            var lines = RegisterValue.LoadCsv(fileName, csvSeperator);
+            var lines = SettingsHandler.Convert(value, csvSeperator);
             if (lines != null)
             {
                 Console.WriteLine("================== Startin upload ======================");
@@ -147,11 +153,14 @@ namespace VfdControl
 
             return false;
         }
-
-        public void Download(string fileName, char seperator)
+        /// <summary>
+        /// Read settings from VFD.
+        /// </summary>
+        /// <param name="seperator">Add this seperator</param>
+        /// <returns>List of lines with settings.</returns>
+        public List<string> ReadSettingsFromVfd(char seperator)
         {
             var lines = new List<string>();
-            lines.Add(RegisterValue.Header(seperator));
             for (int i = 0; i < 200; i++)
             {
                 try
@@ -168,10 +177,8 @@ namespace VfdControl
                     Console.WriteLine(ex.ToString());
                 }
             }
-
-            File.WriteAllLines(fileName, lines);
+            return lines;
         }
-
 
         /// <summary>
         /// Return names for com ports

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Windows.Forms;
 using VfdControl;
+using SpindleTalker2.VfdSettings;
 
 namespace SpindleTalker2.UserControls
 {
@@ -83,7 +84,9 @@ namespace SpindleTalker2.UserControls
             {
                 new Thread(() =>
                 {
-                    _mainWindow._hyMotorControl.Download(dialog.FileName, _csvSeperator);
+                    var settings = _mainWindow._hyMotorControl.ReadSettingsFromVfd(_csvSeperator);
+                    var vfdSettingsHandler = new VfdSettingsHandler();
+                    vfdSettingsHandler.SaveCsv(dialog.FileName, _csvSeperator, settings);
                     _mainWindow._hyMotorControl._hyModbus.StartPolling();
                     MessageBox.Show("Finished downloading all values to file");
                 }).Start();
@@ -100,11 +103,12 @@ namespace SpindleTalker2.UserControls
             if(dialog.ShowDialog() == DialogResult.OK)
             {
                 new Thread(() => {
-                    if(_mainWindow._hyMotorControl.Upload(dialog.FileName, _csvSeperator))
-                    { 
+                    var vfdSettingsHandler = new VfdSettingsHandler();
+                    var lines = vfdSettingsHandler.OpenCsv(dialog.FileName, _csvSeperator);
+                    if (_mainWindow._hyMotorControl.WriteSettingsToVfd(lines, _csvSeperator))
+                    {
                         MessageBox.Show("Finished uploading all values to VFD");
                     }
-
                     _mainWindow._hyMotorControl._hyModbus.StartPolling();
                 }).Start();
             }

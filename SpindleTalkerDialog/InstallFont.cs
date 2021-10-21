@@ -10,6 +10,7 @@ using System.Security.Principal;
 
 namespace SpindleTalker2
 {
+#pragma warning disable CA1416 // Validate platform compatibility
     public class InstallFont
     {
         [DllImport("gdi32", EntryPoint = "AddFontResource")]

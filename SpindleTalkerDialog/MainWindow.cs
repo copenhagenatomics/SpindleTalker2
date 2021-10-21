@@ -59,18 +59,18 @@ namespace SpindleTalker2
             var settingsForm = new SettingsControl(this);
             var terminalForm = new TerminalControl(this, settingsForm.csvSeperator);
             _meterControl = new MeterControl(this);
-            panelMain.Controls.AddRange(new Control[] {_meterControl, terminalForm, settingsForm });
+            panelMain.Controls.AddRange(new Control[] { _meterControl, terminalForm, settingsForm });
             foreach (Control ctrl in panelMain.Controls)
             {
                 ctrl.Dock = DockStyle.Fill;
                 if (ctrl.Tag.ToString() == VFDsettings.LastMDIChild)
                 {
                     ctrl.BringToFront();
-                    foreach(Button button in panelMDI.Controls)
-                    if (button.Tag == ctrl.Tag)
-                        button.BackColor = SystemColors.GradientActiveCaption;
+                    foreach (Button button in panelMDI.Controls)
+                        if (button.Tag == ctrl.Tag)
+                            button.BackColor = SystemColors.GradientActiveCaption;
                         else button.BackColor = SystemColors.Control;
-            }
+                }
 
 
             }
@@ -115,11 +115,11 @@ namespace SpindleTalker2
         {
             Button senderItem = (Button)sender;
 
-            foreach(Button button in panelMDI.Controls)
+            foreach (Button button in panelMDI.Controls)
             {
                 if (button == senderItem) button.BackColor = SystemColors.GradientActiveCaption;
                 else button.BackColor = SystemColors.Control;
-               
+
             }
 
             foreach (Control ctrl in panelMain.Controls)
@@ -139,8 +139,8 @@ namespace SpindleTalker2
         {
             if (_hyMotorControl._hyModbus.VFDData.SerialConnected)
             {
-                if(_meterControl.MeterRPM.Value > 0)
-                    if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to disconnect?", 
+                if (_meterControl.MeterRPM.Value > 0)
+                    if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to disconnect?",
                         "Spindle still running", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1)
                             != System.Windows.Forms.DialogResult.Yes) return;
 
@@ -159,7 +159,7 @@ namespace SpindleTalker2
             {
                 stopWatchInitialPoll.Reset();
                 _hyMotorControl._hyModbus.Connect();
-                stopWatchInitialPoll.Start();               
+                stopWatchInitialPoll.Start();
                 timerInitialPoll.Start();
             }
 
@@ -213,17 +213,18 @@ namespace SpindleTalker2
 
         private void SpindleTalker_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if(_meterControl.MeterOutF.Value > 0)
+            if (_meterControl?.MeterOutF.Value > 0)
             {
-                if(MessageBox.Show("Spindle appears to still be running, are you sure you wish to exit?", "Spindle still running", MessageBoxButtons.OKCancel,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button1) != System.Windows.Forms.DialogResult.OK)
-                { 
+                if (MessageBox.Show("Spindle appears to still be running, are you sure you wish to exit?", "Spindle still running", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1) != System.Windows.Forms.DialogResult.OK)
+                {
                     e.Cancel = true;
                     return;
                 }
             }
-            _hyMotorControl._hyModbus.Disconnect();
+            _hyMotorControl?._hyModbus.Disconnect();
 
-            VFDsettings.Save();
+            if (_hyMotorControl != null)
+                VFDsettings.Save();
         }
 
         public void COMPortStatus(bool connected)
@@ -235,12 +236,12 @@ namespace SpindleTalker2
             else
             {
                 toolStripStatusLabelComPort.Image = (connected ? Resources.greenLED : Resources.redLED);
-                toolStripStatusLabelComPort.Text = _hyMotorControl._hyModbus.PortName + (connected ? " (connected)" : " (disconnected)");
+                toolStripStatusLabelComPort.Text = _hyMotorControl?._hyModbus.PortName + (connected ? " (connected)" : " (disconnected)");
                 toolStripStatusLabelVFDStatus.Image = Resources.orangeLED;
                 toolStripStatusLabelVFDStatus.Text = (connected ? "VFD polling" : "VFD Disconnected");
                 buttonConnect.Image = (connected ? Resources.connect2 : Resources.disconnect2);
                 string status = (connected ? "opened" : "closed");
-                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, _hyMotorControl._hyModbus.PortName, status));
+                Console.WriteLine(string.Format("{0:H:mm:ss.ff} - Port {1} {2}.", DateTime.Now, _hyMotorControl?._hyModbus.PortName, status));
             }
         }
 
@@ -257,7 +258,7 @@ namespace SpindleTalker2
             gTrackBar.ColorLinearGradient colorLinearGradient1 = new gTrackBar.ColorLinearGradient();
             gTrackBar.ColorLinearGradient colorLinearGradient2 = new gTrackBar.ColorLinearGradient();
 
-            if(Enabled)
+            if (Enabled)
             {
                 gTrackBarSpindleSpeed.ColorUp = colorPack1;
                 colorLinearGradient1.ColorA = System.Drawing.Color.DarkGray;
@@ -328,7 +329,7 @@ namespace SpindleTalker2
                     {
                         _hyMotorControl._hyModbus.Disconnect();
                         int i = 0;
-                        while(i++ < 100 && _hyMotorControl._hyModbus.ComOpen)
+                        while (i++ < 100 && _hyMotorControl._hyModbus.ComOpen)
                         {
                             Thread.Sleep(50);
                         }

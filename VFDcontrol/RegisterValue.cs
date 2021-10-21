@@ -8,12 +8,8 @@ namespace VfdControl
 {
     public class RegisterValue
     {
-        private const string QT = "\"";
         public int ID { get; private set; }
         public string Value { get; set; }
-
-        public static string Header(char seperator) { return $"{QT}ID{QT}{seperator}{QT}Value{QT}{seperator}{QT}DefaultValue{QT}{seperator}{QT}Type{QT}{seperator}{QT}Description{QT}{seperator}{QT}Unit{QT}";  }
-        public static int ColumnCount { get { return 6; } }
         public RegisterValue(int id)
         {
             ID = id;
@@ -31,6 +27,7 @@ namespace VfdControl
 
         public string ToString(char seperator)
         {
+            var QT = "\"";
             return $"{ID}{seperator}{Value}{seperator}{DefaultValue}{seperator}{Type}{seperator}{QT}{Description}{QT}{seperator}{Unit}";
         }
 
@@ -64,7 +61,6 @@ namespace VfdControl
         }
 
     #region Paremeters From Booklet
-
         public string Type
         {
             get
@@ -832,34 +828,5 @@ namespace VfdControl
         }
 
         #endregion
-
-        public static List<RegisterValue> LoadCsv(string filename, char seperator = ',')
-        {
-            var lines = File.ReadAllLines(filename).ToList();
-            if (lines[0] == Header(seperator) || lines[0] == Header(seperator).Replace("\"", ""))
-            {
-                var result = new List<RegisterValue>();
-                foreach (var line in lines.Skip(1))
-                {
-                    var row = line.Split(new char[] { seperator }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                    if (row.Count() != ColumnCount)
-                    {
-                        Console.WriteLine("Invalid column count in row:");
-                        return null;
-                    }
-
-                    var item = new RegisterValue(int.Parse(row[0]));
-                    item.Value = row[1];
-                    if (item.Type != row[3]) Console.WriteLine($"ID: {item.ID} has wrong type: {item.Type} <> {row[3]}");
-                    if (item.Unit != row[5]) Console.WriteLine($"ID: {item.ID} has wrong type: {item.Unit} <> {row[5]}");
-                    result.Add(item);
-                }
-
-                return result;
-            }
-
-            Console.WriteLine("Invalid column headers");
-            return null;
-        }
     }
 }
