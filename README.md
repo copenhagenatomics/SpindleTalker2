@@ -28,6 +28,8 @@ I ordered the following inverter/spindle combo along with the RS485 USB/Serial c
 
 http://cgi.ebay.co.uk/ws/eBayISAPI.dll?ViewItem&item=250951586255 (Inverter/Spindle)
 http://cgi.ebay.co.uk/ws/eBayISAPI.dll?ViewItem&item=221389229691 (RS485 adapter)
+Driver for RS485 adapter.
+Search for "ch340 driver windows 10" on Google or go to https://learn.sparkfun.com/tutorials/how-to-install-ch340-drivers/all
 
 I configured the following settings on my VFD (almost totally copied from http://make-a-project.blogspot.co.uk/2013/05/connecting-huanyang-hy01d523b-vfd-speed.html). I won't pretend to understand all of these so if you think you should be using different values, you are probably right.
 ```
