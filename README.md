@@ -1,5 +1,5 @@
 I found this wonderful app and forked it and fixed a few errors and plan to continue to do so over the comming weeks. 
-A BIG thanks to Tommy Gilchrist!
+A BIG thanks to Tommy Gilchrist! 
 
 I have tested this code with my Huanyang HY02D223B and this asynchronous AC motor:
 https://inverterdrive.com/group/Motors-AC/ac-Motor-550-Watts-2-pole-Foot-Face-Mount-71-TEC/
