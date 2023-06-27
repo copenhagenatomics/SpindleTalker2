@@ -301,7 +301,7 @@ namespace VfdControl
         {
             if (receivedPacket.Length == 0)
             {
-                OnWriteTerminalForm?.Invoke($"no date received..", false);
+                OnWriteTerminalForm?.Invoke($"no data received..", false);
                 return;
             }
 
@@ -423,6 +423,7 @@ namespace VfdControl
                     {
                         comPort.Close();
                         VFDData.SerialConnected = false;
+                        VFDData.ReceivingValues = false;
                         ComOpen = false;
                         return;
                     }
@@ -437,19 +438,26 @@ namespace VfdControl
 
                         if (_dataReadyToRead.WaitOne(500)) // Wait for a notification from comPort.dataReceived, timeout after 500ms
                         {
+                            VFDData.ReceivingValues = true;
                             var dataReceived = ReadData(comPort, GetResponseLength(dataToSend[1]));
                             ProcessReceivedPacket(dataReceived);
+                        }
+                        else
+                        {
+                            VFDData.ReceivingValues = false;
                         }
                     }
                     catch (Exception ex)
                     {
                         OnWriteLog?.Invoke("VFD Read / Write error: " + ex.ToString(), true);
-                        return; // exit. 
+                        break; // exit. 
                     }
                 }
             }
 
-            comPort.Close();
+            try { comPort.Close(); } catch { }
+            VFDData.SerialConnected = false;
+            VFDData.ReceivingValues = false;
             ComOpen = false;
         }
 
