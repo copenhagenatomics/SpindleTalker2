@@ -63,8 +63,6 @@ namespace VfdControl
             this.StopBits = stopBits;
             this.ModBusID = modBusID;
             this.ResponseWaitTimeout = responseWaitTimeout;
-
-            new Thread(() => DoWork()).Start();
         }
 
         

@@ -70,7 +70,7 @@ namespace ConsoleTest
                 var MotorControl = new MotorControl(baudRate: 38400, portName: _port);
                 MotorControl._hyModbus.OnWriteTerminalForm += Serial_Write;
                 MotorControl._hyModbus.OnWriteLog += OnWriteLog;
-                MotorControl._hyModbus.InitialPoll();
+                MotorControl._hyModbus.Connect();
 
                 int i = 0;
                 while (!MotorControl._hyModbus.VFDData.InitDataOK())
