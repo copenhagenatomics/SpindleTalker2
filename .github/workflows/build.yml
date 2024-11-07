@@ -9,9 +9,9 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 5.0.x
     - name: Restore dependencies
@@ -37,17 +37,17 @@ jobs:
     needs: create-tag-and-release
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         ref: ${{ needs.create-tag-and-release.outputs.tag_name }}
         fetch-depth: 0 #needed to get the tags for proper versioning. Also note at this point we expect the commit to be tagged by the build.
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 5.0.x
     - name: Generate app files
       run: dotnet publish -c Release
-    - uses: actions/upload-artifact@v2 # make the files available to next action that will zip and release the app from linux
+    - uses: actions/upload-artifact@v4 # make the files available to next action that will zip and release the app from linux
       with:
         name: appfiles
         path: SpindleTalkerDialog/bin/Release/net5.0-windows/publish/
@@ -61,7 +61,7 @@ jobs:
     needs: packageapp
     runs-on: ubuntu-latest 
     steps:
-    - uses: actions/download-artifact@v2 # make the files available to next action that will zip and release the app from linux
+    - uses: actions/download-artifact@v4 # make the files available to next action that will zip and release the app from linux
       with:
         name: appfiles
     - name: Install zip
