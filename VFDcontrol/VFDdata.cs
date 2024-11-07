@@ -21,6 +21,7 @@ namespace VfdControl
         }
         private  bool _serialConnected;
 
+        public bool ReadError { get; set; }
         public bool ReceivingValues { get; set; }
 
         public double LowerLevelFreq

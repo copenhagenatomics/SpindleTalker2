@@ -299,22 +299,32 @@ namespace VfdControl
         {
             if (receivedPacket.Length == 0)
             {
+                VFDData.ReadError = true;
                 OnWriteTerminalForm?.Invoke($"no data received..", false);
                 return;
             }
 
             if (receivedPacket[0] != (byte)this.ModBusID)
+            {
+                VFDData.ReadError = true;
                 return;
+            }
 
             if (receivedPacket.Length < 4)
+            {
+                VFDData.ReadError = true;
                 return;
+            }
 
             string hexString = ByteArrayToHexString(receivedPacket);
             if (!CRCCheck(receivedPacket))
             {
+                VFDData.ReadError = true;
                 OnWriteLog?.Invoke($"{DateTime.Now.ToString("H:mm:ss.ff")} - CRC Failed : {hexString}", true);
                 return;
             }
+
+            VFDData.ReadError = false;
 
             int receivedValue = Convert.ToInt32(receivedPacket[receivedPacket.Length - 3]);
             if (receivedPacket.Length == 8)
@@ -325,8 +335,8 @@ namespace VfdControl
             if (receivedPacket[1] == (byte)CommandType.ReadControlData && receivedPacket[2] == (byte)CommandLength.ThreeBytes)
             {
                 ProcessControlData(receivedValue, receivedPacket[3]);
-               //  Debug.Print(VFDData.GetControlDataString());
-               OnProcessPollPacket?.Invoke(VFDData);
+                //  Debug.Print(VFDData.GetControlDataString());
+                OnProcessPollPacket?.Invoke(VFDData);
             }
             else if(receivedPacket[1] == (byte)CommandType.FunctionRead || receivedPacket[1] == (byte)CommandType.FunctionWrite)
             {
@@ -397,7 +407,7 @@ namespace VfdControl
                 ComOpen = true;
                 OnWriteLog?.Invoke($"Motor controller serial port is open: {comPort.PortName}, {comPort.BaudRate}", false);
                 comPort.DataReceived += comPort_DataReceived;
-                VFDData.SerialConnected = true; // Report that the COM port has opened sucessfully
+                VFDData.SerialConnected = true; // Report that the COM port has opened successfully
             }
 
             byte[] statusRequestPacket = new byte[6];
@@ -417,7 +427,7 @@ namespace VfdControl
                 var dataToSend = GetData(statusRequestPacket);
                 if (dataToSend != null)
                 {
-                    if (dataToSend[0] == 0xff && dataToSend[1] == 0xff) // everyone shotdown
+                    if (dataToSend[0] == 0xff && dataToSend[1] == 0xff) // everyone shutdown
                     {
                         comPort.Close();
                         VFDData.SerialConnected = false;
